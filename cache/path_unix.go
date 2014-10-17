@@ -1,3 +1,5 @@
+// +build !darwin linux freebsd netbds openbsd dragonfly solaris
+
 /*
 	Copyright (C) 2014  Oscar Campos <oscar.campos@member.fsf.org>
 
@@ -18,8 +20,6 @@
 	See LICENSE file for more details.
 */
 
-// +build linux dragonfly freebsd netbsd openbsd solaris
-
 package cache
 
 import (
@@ -27,7 +27,7 @@ import (
 	"path"
 )
 
-// Return the CacheDirctory for not darwin Unix. By default it is
+// Return the CacheDirectory for not darwin Unix. By default it is
 // ~/.cache/VenGO. On Linux, if the environemnt variable XDG_CACHE_HOME
 // exists it will be XDG_CACHE_HOME/VenGO
 func CacheDirectory() string {

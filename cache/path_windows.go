@@ -18,8 +18,6 @@
 	See LICENSE file for more details.
 */
 
-// +build windows
-
 package cache
 
 import (

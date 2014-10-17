@@ -18,8 +18,6 @@
 	See LICENSE file for more details.
 */
 
-// +build darwin
-
 package cache
 
 import "path"
