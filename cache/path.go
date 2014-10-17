@@ -33,5 +33,5 @@ func ExpandUser(path string) string {
 		log.Println("Can't get current user:", err)
 		return path
 	}
-	return strings.Replace("~", u.HomeDir, -1)
+	return strings.Replace(path, "~", u.HomeDir, -1)
 }
