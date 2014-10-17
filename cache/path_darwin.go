@@ -22,7 +22,7 @@
 
 package cache
 
-import "os/path"
+import "path"
 
 // Return the CacheDirctory for OS X, ~/Library/Caches/VenGO
 func CacheDirectory() string {

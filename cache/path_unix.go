@@ -24,7 +24,7 @@ package cache
 
 import (
 	"os"
-	"os/path"
+	"path"
 )
 
 // Return the CacheDirctory for not darwin Unix. By default it is

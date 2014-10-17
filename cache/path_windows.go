@@ -24,7 +24,7 @@ package cache
 
 import (
 	"os"
-	"os/path"
+	"path"
 )
 
 // Return CacheDirectory on Windows, %APPDATA%\\VenGO
