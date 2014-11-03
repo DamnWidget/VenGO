@@ -27,7 +27,7 @@ import (
 
 // Return CacheDirectory on Windows, %APPDATA%\\VenGO
 func CacheDirectory() string {
-	XDG_CACHE_HOME := os.Getenv("APPDATA")
+	APPDATA := os.Getenv("APPDATA")
 	if APPDATA == "" {
 		APPDATA = ExpandUser("~")
 	}
