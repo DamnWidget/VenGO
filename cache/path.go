@@ -21,9 +21,16 @@
 package cache
 
 import (
+	"bytes"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os/user"
 	"strings"
+
+	"github.com/DamnWidget/VenGO/logger"
 )
 
 // Expand the user home tilde to the right user home path
@@ -34,4 +41,35 @@ func ExpandUser(path string) string {
 		return path
 	}
 	return strings.Replace(path, "~", u.HomeDir, -1)
+}
+
+// Download an specific version of Golang
+func CacheDownload(version string) error {
+	url := fmt.Sprintf(
+		"https://storage.googleapis.com/golang/go%s.src.tar.gz", version)
+	resp, err := http.Get(url)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	if resp.StatusCode != 200 {
+		if resp.StatusCode == 400 {
+			log.Fatal("Version %s can't be found!\n", version)
+		}
+		logger.Fatal(resp.Status)
+	}
+	defer resp.Body.Close()
+	out, err := ioutil.TempFile("", "vengo-")
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	logger.Printf("downloading go%s.src.tar.gz...\n", version)
+	buf := new(bytes.Buffer)
+	size, err := io.Copy(buf, resp.Body)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	logger.Printf("%s bytes donwloaded... decompresssing...")
+
 }
