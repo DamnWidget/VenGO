@@ -21,13 +21,16 @@
 package cache
 
 import (
+	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"os/user"
+	"path/filepath"
 	"strings"
 
 	"github.com/DamnWidget/VenGO/logger"
@@ -44,7 +47,7 @@ func ExpandUser(path string) string {
 }
 
 // Download an specific version of Golang
-func CacheDownload(version string) error {
+func CacheDownload(version string) {
 	url := fmt.Sprintf(
 		"https://storage.googleapis.com/golang/go%s.src.tar.gz", version)
 	resp, err := http.Get(url)
@@ -59,10 +62,6 @@ func CacheDownload(version string) error {
 		logger.Fatal(resp.Status)
 	}
 	defer resp.Body.Close()
-	out, err := ioutil.TempFile("", "vengo-")
-	if err != nil {
-		logger.Fatal(err)
-	}
 
 	logger.Printf("downloading go%s.src.tar.gz...\n", version)
 	buf := new(bytes.Buffer)
@@ -70,6 +69,59 @@ func CacheDownload(version string) error {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	logger.Printf("%s bytes donwloaded... decompresssing...")
+	logger.Printf("%d bytes donwloaded... decompresssing...\n", size)
+	prefix := filepath.Join(CacheDirectory(), version)
+	extractTar(prefix, readGzipFile(buf))
+}
 
+// read the contents of a compressed gzip file
+func readGzipFile(data *bytes.Buffer) *bytes.Buffer {
+	reader, err := gzip.NewReader(data)
+	if err != nil {
+		logger.Println("Fatal error reading gzip file contents...")
+		logger.Fatal(err)
+	}
+	defer reader.Close()
+	gzipBuf := new(bytes.Buffer)
+	if _, err := io.Copy(gzipBuf, reader); err != nil {
+		logger.Println(
+			"Fatal error while reading gzip file contents into the buffer")
+		logger.Fatal(err)
+	}
+
+	return gzipBuf
+}
+
+// extract the contents of the tar data into the given prefix
+func extractTar(prefix string, data *bytes.Buffer) {
+	tr := tar.NewReader(data)
+	if err := os.MkdirAll(filepath.Join(prefix, "go"), 0766); err != nil {
+		logger.Fatal(err)
+	}
+	for {
+		hdr, err := tr.Next()
+		if err != nil {
+			if err != io.EOF {
+				logger.Fatal(err)
+			}
+			break
+		}
+		fi := hdr.FileInfo()
+		if fi.IsDir() {
+			err := os.MkdirAll(filepath.Join(prefix, hdr.Name), 0766)
+			if err != nil && os.IsNotExist(err) {
+				logger.Fatal(err)
+			}
+		} else {
+			tw, err := os.OpenFile(
+				filepath.Join(prefix, hdr.Name), os.O_RDWR|os.O_CREATE|os.O_TRUNC, fi.Mode())
+			if err != nil && !os.IsExist(err) {
+				logger.Fatal(err)
+			}
+			if _, err := io.Copy(tw, tr); err != nil {
+				logger.Fatal(err)
+			}
+			tw.Close()
+		}
+	}
 }

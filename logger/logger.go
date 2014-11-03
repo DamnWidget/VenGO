@@ -36,14 +36,14 @@ func init() {
 	if err != nil {
 		std.Fatal(err)
 	}
-	stdLogFile := log.New(logFile, "", log.LstdFlags)
+	stdLogFile = log.New(logFile, "", log.LstdFlags)
 }
 
 // Printf calls l.Output to print to the logger.
 // Arguments are handled in the manner of fmt.Printf.
 func Printf(format string, v ...interface{}) {
-	std.Printf(format, v)
-	go stdLogFile.Printf(format, v)
+	std.Printf(format, v...)
+	go stdLogFile.Printf(format, v...)
 }
 
 // Print calls l.Output to print to the logger.
@@ -56,15 +56,14 @@ func Print(v ...interface{}) {
 // Println calls l.Output to print to the logger.
 // Arguments are handled in the manner of fmt.Println.
 func Println(v ...interface{}) {
-	std.Println(v)
-	go stdLogFile.Println(v)
+	std.Println(v...)
+	go stdLogFile.Println(v...)
 }
 
 // Fatal is equivalent to l.Print() followed by a call to os.Exit(1).
-func Fatal(format string, v ...interface{}) {
-	s := fmt.Sprintf(format, v...)
-	std.Output(2, s)
-	stdLogFile.Output(2, s)
+func Fatal(v ...interface{}) {
+	std.Output(2, fmt.Sprint(v...))
+	stdLogFile.Output(2, fmt.Sprint(v...))
 	logFile.Close()
 	os.Exit(1)
 }
