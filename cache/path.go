@@ -2,18 +2,18 @@
 	Copyright (C) 2014  Oscar Campos <oscar.campos@member.fsf.org>
 
 	This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 	See LICENSE file for more details.
 */
@@ -22,15 +22,19 @@ package cache
 
 import (
 	"archive/tar"
+	"bufio"
 	"bytes"
 	"compress/gzip"
+	"crypto/sha1"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/DamnWidget/VenGO/logger"
@@ -47,31 +51,48 @@ func ExpandUser(path string) string {
 }
 
 // Download an specific version of Golang
-func CacheDownload(version string) {
-	url := fmt.Sprintf(
-		"https://storage.googleapis.com/golang/go%s.src.tar.gz", version)
-	resp, err := http.Get(url)
+func CacheDownload(ver string) error {
+	expected_sha1, err := Checksum(ver)
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
-	if resp.StatusCode != 200 {
-		if resp.StatusCode == 400 {
-			log.Fatal("Version %s can't be found!\n", version)
+	if !Exists(ver) {
+		url := fmt.Sprintf(
+			"https://storage.googleapis.com/golang/go%s.src.tar.gz", ver)
+		resp, err := http.Get(url)
+		if err != nil {
+			return err
 		}
-		logger.Fatal(resp.Status)
-	}
-	defer resp.Body.Close()
 
-	logger.Printf("downloading go%s.src.tar.gz...\n", version)
-	buf := new(bytes.Buffer)
-	size, err := io.Copy(buf, resp.Body)
-	if err != nil {
-		logger.Fatal(err)
+		if resp.StatusCode != 200 {
+			if resp.StatusCode == 400 {
+				log.Fatal("Version %s can't be found!\n", ver)
+			}
+			return fmt.Errorf("%s", resp.Status)
+		}
+		defer resp.Body.Close()
+
+		logger.Printf("downloading Go%s from %s\n", ver, url)
+		buf := new(bytes.Buffer)
+		size, err := io.Copy(buf, resp.Body)
+		if err != nil {
+			return err
+		}
+
+		pkg_sha1 := fmt.Sprintf("%x", sha1.Sum(buf.Bytes()))
+		if pkg_sha1 != expected_sha1 {
+			return fmt.Errorf(
+				"Error: SHA1 is different! expected %s got %s",
+				expected_sha1, pkg_sha1,
+			)
+		}
+		logger.Printf("%d bytes donwloaded... decompresssing...\n", size)
+		prefix := filepath.Join(CacheDirectory(), ver)
+		extractTar(prefix, readGzipFile(buf))
 	}
-	logger.Printf("%d bytes donwloaded... decompresssing...\n", size)
-	prefix := filepath.Join(CacheDirectory(), version)
-	extractTar(prefix, readGzipFile(buf))
+
+	return nil
 }
 
 // read the contents of a compressed gzip file
@@ -124,4 +145,58 @@ func extractTar(prefix string, data *bytes.Buffer) {
 			tw.Close()
 		}
 	}
+}
+
+// checks for the existance of the given version in the cache
+func Exists(ver string) bool {
+	_, err := os.Stat(filepath.Join(CacheDirectory(), ver))
+	return err == nil
+}
+
+func alreadyCompiled(ver string) bool {
+	_, err := os.Stat(filepath.Join(CacheDirectory(), ver, "go", "bin", "go"))
+	return err == nil
+}
+
+// compile a given version of go in the cache
+func Compile(ver string) error {
+	currdir, _ := os.Getwd()
+	err := os.Chdir(filepath.Join(CacheDirectory(), ver, "go", "src"))
+	if err != nil {
+		return err
+	}
+	defer func() { os.Chdir(currdir) }()
+
+	cmd := "./all.bash"
+	if runtime.GOOS == "windows" {
+		cmd = "./all.bat"
+	}
+	p := exec.Command(cmd)
+	out, err := p.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	rd := bufio.NewReader(out)
+	if err := p.Start(); err != nil {
+		return err
+	}
+
+	// read the command output and update the terminal
+	for {
+		str, err := rd.ReadString('\n')
+		if err != nil {
+			if err != io.EOF {
+				logger.Fatal(err)
+			}
+			break
+		}
+		logger.Printf("%s", str)
+	}
+
+	if _, err := os.Stat(
+		filepath.Join(CacheDirectory(), ver, "go", "bin", "go")); err != nil {
+		return fmt.Errorf("Go %s wasn't compiled properly!", ver)
+	}
+
+	return nil
 }
