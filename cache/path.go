@@ -38,6 +38,7 @@ import (
 	"strings"
 
 	"github.com/DamnWidget/VenGO/logger"
+	"github.com/mcuadros/go-version"
 )
 
 // Expand the user home tilde to the right user home path
@@ -60,6 +61,11 @@ func CacheDownload(ver string) error {
 	if !Exists(ver) {
 		url := fmt.Sprintf(
 			"https://storage.googleapis.com/golang/go%s.src.tar.gz", ver)
+		if version.Compare(version.Normalize(ver), "1.2.2", "<") {
+			url = fmt.Sprintf(
+				"https://go.googlecode.com/files/go%s.src.tar.gz", ver)
+		}
+		log.Println(url)
 		resp, err := http.Get(url)
 		if err != nil {
 			return err

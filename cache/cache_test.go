@@ -8,12 +8,13 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"runtime/debug"
 	"strings"
 
 	"github.com/DamnWidget/VenGO/cache"
 )
 
-var RunSlowTests = false
+var RunSlowTests = true
 
 // check if we are running on travis
 // NOTE: this will return false positives in the home directory of anyone
@@ -124,29 +125,41 @@ var _ = Describe("Cache", func() {
 			})
 		})
 
-		Describe("CacheDownload works as expected", func() {
-			Context("Passing a non valid Go version", func() {
-				err := cache.CacheDownload("1.0")
-				It("Should not be nil and formatted", func() {
-					Expect(err).ToNot(BeNil())
-					Expect(err).To(Equal(fmt.Errorf(
-						"1.0 is not a VenGO supported version you must donwload and compile it yourself"),
-					))
-				})
-			})
-
-			Context("Passing a valid Go version", func() {
-				err := cache.CacheDownload("1.2.2")
-				It("Should download and extract a valid tar.gz file", func() {
-					Expect(err).To(BeNil())
-					_, serr := os.Stat(filepath.Join(cache.CacheDirectory(), "1.2.2"))
-					Expect(serr).To(BeNil())
-					os.RemoveAll(filepath.Join(cache.CacheDirectory(), "1.2.2"))
-				})
-			})
-		})
-
 		if RunSlowTests {
+			Describe("CacheDownload works as expected", func() {
+				Context("Passing a non valid Go version", func() {
+					err := cache.CacheDownload("1.0")
+					It("Should not be nil and formatted", func() {
+						Expect(err).ToNot(BeNil())
+						Expect(err).To(Equal(fmt.Errorf(
+							"1.0 is not a VenGO supported version you must donwload and compile it yourself"),
+						))
+					})
+				})
+
+				Context("Passing a valid Go version", func() {
+					err := cache.CacheDownload("1.2.2")
+					It("Should download and extract a valid tar.gz file", func() {
+						Expect(err).To(BeNil())
+						_, serr := os.Stat(filepath.Join(cache.CacheDirectory(), "1.2.2"))
+						Expect(serr).To(BeNil())
+						os.RemoveAll(filepath.Join(cache.CacheDirectory(), "1.2.2"))
+						debug.FreeOSMemory()
+					})
+				})
+
+				Context("Passing an old Go version", func() {
+					err := cache.CacheDownload("1.1.1")
+					It("Should donwload and extract a valid tar.gz file", func() {
+						Expect(err).To(BeNil())
+						_, err := os.Stat(filepath.Join(cache.CacheDirectory(), "1.1.1"))
+						Expect(err).To(BeNil())
+						os.RemoveAll(filepath.Join(cache.CacheDirectory(), "1.1.1"))
+						debug.FreeOSMemory()
+					})
+				})
+			})
+
 			Describe("Compile works as expected", func() {
 				Context("Giving a non existent version", func() {
 					err := cache.Compile("1.0")

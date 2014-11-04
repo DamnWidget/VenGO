@@ -39,21 +39,21 @@ func init() {
 	stdLogFile = log.New(logFile, "", log.LstdFlags)
 }
 
-// Printf calls l.Output to print to the logger.
+// Printf calls Logger.Printf to print to the logger.
 // Arguments are handled in the manner of fmt.Printf.
 func Printf(format string, v ...interface{}) {
 	std.Printf(format, v...)
 	go stdLogFile.Printf(format, v...)
 }
 
-// Print calls l.Output to print to the logger.
+// Print calls Logger.Print to print to the logger.
 // Arguments are handled in the manner of fmt.Print.
 func Print(v ...interface{}) {
 	std.Print(v)
 	go stdLogFile.Print(v)
 }
 
-// Println calls l.Output to print to the logger.
+// Println calls Logger.Println to print to the logger.
 // Arguments are handled in the manner of fmt.Println.
 func Println(v ...interface{}) {
 	std.Println(v...)

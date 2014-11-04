@@ -23,6 +23,13 @@ package cache
 import "fmt"
 
 var checksums map[string]string = map[string]string{
+	// old
+	"1.1":   "a464704ebbbdd552a39b5f9429b059c117d165b3",
+	"1.1.1": "f365aed8183e487a48a66ace7bf36e5974dffbb3",
+	"1.1.2": "f5ab02bbfb0281b6c19520f44f7bc26f9da563fb",
+	"1.2":   "7dd2408d40471aeb30a9e0b502c6717b5bf383a5",
+	"1.2.1": "6a4b9991eddd8039438438d6aa25126ab7e07f2f",
+
 	// stable
 	"1.2.2": "3ce0ac4db434fc1546fec074841ff40dc48c1167",
 	"1.3":   "9f9dfcbcb4fa126b2b66c0830dc733215f2f056e",
