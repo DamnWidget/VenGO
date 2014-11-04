@@ -8,11 +8,20 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 
 	"github.com/DamnWidget/VenGO/cache"
 )
 
-var RunSlowTests = true // those tests will break travis
+var RunSlowTests = false
+
+// check if we are running on travis
+// NOTE: this will return false positives in the home directory of anyone
+// that is called travis and his home is "travis" or contains "travis", sorry
+func runningOnTravis() bool {
+	c := cache.CacheDirectory()
+	return strings.Contains(c, "travis")
+}
 
 var _ = Describe("Cache", func() {
 
@@ -96,65 +105,68 @@ var _ = Describe("Cache", func() {
 		})
 	})
 
-	Describe("Exists works as expected", func() {
-		Context("Used in a file that actually exists", func() {
-			file := filepath.Join(cache.CacheDirectory(), "test")
-			if err := ioutil.WriteFile(file, []byte("Test"), 0644); err != nil {
-				log.Fatal(err)
-			}
+	if !runningOnTravis() {
+		Describe("Exists works as expected", func() {
+			Context("Used in a file that actually exists", func() {
+				file := filepath.Join(cache.CacheDirectory(), "test")
+				if err := ioutil.WriteFile(file, []byte("Test"), 0644); err != nil {
+					log.Fatal(err)
+				}
 
-			It("Should return true as the file exists", func() {
-				Expect(cache.Exists("test")).To(BeTrue())
-				os.Remove(file)
-			})
+				It("Should return true as the file exists", func() {
+					Expect(cache.Exists("test")).To(BeTrue())
+					os.Remove(file)
+				})
 
-			It("Shoudl return false as the file doesn't exists", func() {
-				Expect(cache.Exists("invalid")).To(BeFalse())
-			})
-		})
-	})
-
-	Describe("CacheDownload works as expected", func() {
-		Context("Passing a non valid Go version", func() {
-			err := cache.CacheDownload("1.0")
-			It("Should not be nil and formatted", func() {
-				Expect(err).ToNot(BeNil())
-				Expect(err).To(Equal(fmt.Errorf(
-					"1.0 is not a VenGO supported version you must donwload and compile it yourself"),
-				))
+				It("Shoudl return false as the file doesn't exists", func() {
+					Expect(cache.Exists("invalid")).To(BeFalse())
+				})
 			})
 		})
 
-		Context("Passing a valid Go version", func() {
-			err := cache.CacheDownload("1.2.2")
-			It("Should download and extract a valid tar.gz file", func() {
-				Expect(err).To(BeNil())
-				_, serr := os.Stat(filepath.Join(cache.CacheDirectory(), "1.2.2"))
-				Expect(serr).To(BeNil())
-				os.RemoveAll(filepath.Join(cache.CacheDirectory(), "1.2.2"))
-			})
-		})
-	})
-
-	if RunSlowTests {
-		Describe("Compile works as expected", func() {
-			Context("Giving a non existent version", func() {
-				err := cache.Compile("1.0")
-				It("Shuld return an error", func() {
+		Describe("CacheDownload works as expected", func() {
+			Context("Passing a non valid Go version", func() {
+				err := cache.CacheDownload("1.0")
+				It("Should not be nil and formatted", func() {
 					Expect(err).ToNot(BeNil())
-					Expect(os.IsNotExist(err)).To(BeTrue())
+					Expect(err).To(Equal(fmt.Errorf(
+						"1.0 is not a VenGO supported version you must donwload and compile it yourself"),
+					))
 				})
 			})
 
-			Context("Giving an existent version", func() {
-				err := cache.Compile("1.3.3")
-				It("Shoudl return nil and compile it", func() {
+			Context("Passing a valid Go version", func() {
+				err := cache.CacheDownload("1.2.2")
+				It("Should download and extract a valid tar.gz file", func() {
 					Expect(err).To(BeNil())
-					_, err := os.Stat(filepath.Join(
-						cache.CacheDirectory(), "1.3.3", "go", "bin", "go"))
-					Expect(err).To(BeNil())
+					_, serr := os.Stat(filepath.Join(cache.CacheDirectory(), "1.2.2"))
+					Expect(serr).To(BeNil())
+					os.RemoveAll(filepath.Join(cache.CacheDirectory(), "1.2.2"))
 				})
 			})
 		})
+
+		if RunSlowTests {
+			Describe("Compile works as expected", func() {
+				Context("Giving a non existent version", func() {
+					err := cache.Compile("1.0")
+					It("Shuld return an error", func() {
+						Expect(err).ToNot(BeNil())
+						Expect(os.IsNotExist(err)).To(BeTrue())
+					})
+				})
+
+				Context("Giving an existent version", func() {
+					err := cache.Compile("1.3.3")
+					It("Shoudl return nil and compile it", func() {
+						Expect(err).To(BeNil())
+						_, err := os.Stat(filepath.Join(
+							cache.CacheDirectory(), "1.3.3", "go", "bin", "go"))
+						Expect(err).To(BeNil())
+					})
+				})
+			})
+		}
 	}
+
 })
