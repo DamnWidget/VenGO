@@ -26,8 +26,8 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 // Return the CacheDirctory for OS X, ~/Library/Caches/VenGO
@@ -36,16 +36,15 @@ func CacheDirectory() string {
 }
 
 // return back the binary string version for downloads in OS X
-func getBinaryVersion(version string) string {
+func GetBinaryVersion(version string) string {
 	cmd := exec.Command("sw_vers", "-productVersion")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Fatal(err)
 	}
 	major_ver := "10.6"
-        ver := strings.TrimRight(string(out), "\n")
+	ver := strings.TrimRight(string(out), "\n")
 	numeric_ver, _ := strconv.ParseInt(ver[3:], 10, 64)
-        log.Println(string(ver[3:]), numeric_ver)
 	if numeric_ver >= int64(8) {
 		major_ver = "10.8"
 	}

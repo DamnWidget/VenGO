@@ -1,6 +1,10 @@
 package cache_test
 
 import (
+	"log"
+	"net/http"
+	_ "net/http/pprof"
+
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 
@@ -11,6 +15,12 @@ func TestCache(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Cache Suite")
 }
+
+var _ = BeforeSuite(func() {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+})
 
 // Declarations for Ginkgo DSL
 type Done ginkgo.Done
@@ -37,6 +47,7 @@ var It = ginkgo.It
 var FIt = ginkgo.FIt
 var PIt = ginkgo.PIt
 var XIt = ginkgo.XIt
+var By = ginkgo.By
 var Measure = ginkgo.Measure
 var FMeasure = ginkgo.FMeasure
 var PMeasure = ginkgo.PMeasure
@@ -72,12 +83,15 @@ var BeNil = gomega.BeNil
 var BeTrue = gomega.BeTrue
 var BeFalse = gomega.BeFalse
 var HaveOccurred = gomega.HaveOccurred
+var Succeed = gomega.Succeed
 var MatchError = gomega.MatchError
 var BeClosed = gomega.BeClosed
 var Receive = gomega.Receive
 var BeSent = gomega.BeSent
 var MatchRegexp = gomega.MatchRegexp
 var ContainSubstring = gomega.ContainSubstring
+var HavePrefix = gomega.HavePrefix
+var HaveSuffix = gomega.HaveSuffix
 var MatchJSON = gomega.MatchJSON
 var BeEmpty = gomega.BeEmpty
 var HaveLen = gomega.HaveLen

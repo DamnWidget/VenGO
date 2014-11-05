@@ -96,7 +96,7 @@ var checksums map[string]string = map[string]string{
 	"1.2.2.freebsd-amd64":        "858744ab8ff9661d42940486af63d451853914a0",
 	"1.2.2.freebsd-386":          "d226b8e1c3f75d31fa426df63aa776d7e08cddac",
 	"1.2.2.darwin-amd64-osx10.6": "24c182718fd61b2621692dcdfc34937a6b5ee369",
-	"1.2.2.darwin-amd64-osx10.8": "5d78f2a3fe82b01fe5dfcb267e703e754274b253",
+	"1.2.2.darwin-amd64-osx10.8": "19be1eca8fc01b32bb6588a70773b84cdce6bed1",
 	"1.2.2.darwin-386-osx10.6":   "360ec6cbfdec9257de029f918a881b9944718d7c",
 	"1.2.2.darwin-386-osx10.8":   "4219b464e82e7c23d9dc02c193e7a0a28a09af1a",
 	"1.2.2.windows-amd64":        "9ee22fe6c4d98124d582046aab465ab69eaab048",

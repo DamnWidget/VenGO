@@ -58,7 +58,7 @@ func Exists(ver string) bool {
 // Download an specific version of Golang binary files
 func CacheDownloadBinary(ver string) error {
 	numeric_ver := ver
-	ver = getBinaryVersion(ver)
+	ver = GetBinaryVersion(ver)
 	expected_sha1, err := Checksum(ver)
 	if err != nil {
 		return err
@@ -74,7 +74,6 @@ func CacheDownloadBinary(ver string) error {
 		if runtime.GOOS == "windows" {
 			url = strings.Replace(url, ".tar.gz", ".zip", -1)
 		}
-                logger.Println(url)
 		if err := downloadAndExtract(ver, url, expected_sha1); err != nil {
 			return err
 		}
@@ -137,6 +136,8 @@ func downloadAndExtract(ver, url, expected_sha1 string) error {
 	logger.Printf("%d bytes donwloaded... decompresssing...\n", size)
 	prefix := filepath.Join(CacheDirectory(), ver)
 	extractTar(prefix, readGzipFile(buf))
+	buf.Reset()
+	buf = nil
 
 	return nil
 }
@@ -191,4 +192,6 @@ func extractTar(prefix string, data *bytes.Buffer) {
 			tw.Close()
 		}
 	}
+	data.Reset()
+	data = nil
 }
