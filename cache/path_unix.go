@@ -23,8 +23,10 @@
 package cache
 
 import (
+	"fmt"
 	"os"
 	"path"
+	"runtime"
 )
 
 // Return the CacheDirectory for not darwin Unix. By default it is
@@ -36,4 +38,9 @@ func CacheDirectory() string {
 		XDG_CACHE_HOME = ExpandUser("~/.cache")
 	}
 	return path.Join(XDG_CACHE_HOME, "VenGO")
+}
+
+// return back the binary string version for downloads in GNU/Linux
+func getBinaryVersion(version string) string {
+	return fmt.Sprintf("%s.linux-%s", version, runtime.GOARCH)
 }

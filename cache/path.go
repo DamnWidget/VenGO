@@ -22,7 +22,6 @@ package cache
 
 import (
 	"archive/tar"
-	"bufio"
 	"bytes"
 	"compress/gzip"
 	"crypto/sha1"
@@ -31,7 +30,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/user"
 	"path/filepath"
 	"runtime"
@@ -51,7 +49,41 @@ func ExpandUser(path string) string {
 	return strings.Replace(path, "~", u.HomeDir, -1)
 }
 
-// Download an specific version of Golang
+// checks for the existance of the given version in the cache
+func Exists(ver string) bool {
+	_, err := os.Stat(filepath.Join(CacheDirectory(), ver))
+	return err == nil
+}
+
+// Download an specific version of Golang binary files
+func CacheDownloadBinary(ver string) error {
+	numeric_ver := ver
+	ver = getBinaryVersion(ver)
+	expected_sha1, err := Checksum(ver)
+	if err != nil {
+		return err
+	}
+
+	if !Exists(ver) {
+		url := fmt.Sprintf(
+			"https://storage.googleapis.com/golang/go%s.tar.gz", ver)
+		if version.Compare(version.Normalize(numeric_ver), "1.2.2", "<") {
+			url = fmt.Sprintf(
+				"https://go.googlecode.com/files/go%s.tar.gz", ver)
+		}
+		if runtime.GOOS == "windows" {
+			url = strings.Replace(url, ".tar.gz", ".zip", -1)
+		}
+                logger.Println(url)
+		if err := downloadAndExtract(ver, url, expected_sha1); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Download an specific version of Golang source code
 func CacheDownload(ver string) error {
 	expected_sha1, err := Checksum(ver)
 	if err != nil {
@@ -65,38 +97,46 @@ func CacheDownload(ver string) error {
 			url = fmt.Sprintf(
 				"https://go.googlecode.com/files/go%s.src.tar.gz", ver)
 		}
-		log.Println(url)
-		resp, err := http.Get(url)
-		if err != nil {
+		if err := downloadAndExtract(ver, url, expected_sha1); err != nil {
 			return err
 		}
-
-		if resp.StatusCode != 200 {
-			if resp.StatusCode == 400 {
-				log.Fatal("Version %s can't be found!\n", ver)
-			}
-			return fmt.Errorf("%s", resp.Status)
-		}
-		defer resp.Body.Close()
-
-		logger.Printf("downloading Go%s from %s\n", ver, url)
-		buf := new(bytes.Buffer)
-		size, err := io.Copy(buf, resp.Body)
-		if err != nil {
-			return err
-		}
-
-		pkg_sha1 := fmt.Sprintf("%x", sha1.Sum(buf.Bytes()))
-		if pkg_sha1 != expected_sha1 {
-			return fmt.Errorf(
-				"Error: SHA1 is different! expected %s got %s",
-				expected_sha1, pkg_sha1,
-			)
-		}
-		logger.Printf("%d bytes donwloaded... decompresssing...\n", size)
-		prefix := filepath.Join(CacheDirectory(), ver)
-		extractTar(prefix, readGzipFile(buf))
 	}
+
+	return nil
+}
+
+// download and extract the given file checking the given sha1 signature
+func downloadAndExtract(ver, url, expected_sha1 string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		if resp.StatusCode == 400 {
+			log.Fatal("Version %s can't be found!\n", ver)
+		}
+		return fmt.Errorf("%s", resp.Status)
+	}
+	defer resp.Body.Close()
+
+	logger.Printf("downloading Go%s from %s\n", ver, url)
+	buf := new(bytes.Buffer)
+	size, err := io.Copy(buf, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	pkg_sha1 := fmt.Sprintf("%x", sha1.Sum(buf.Bytes()))
+	if pkg_sha1 != expected_sha1 {
+		return fmt.Errorf(
+			"Error: SHA1 is different! expected %s got %s",
+			expected_sha1, pkg_sha1,
+		)
+	}
+	logger.Printf("%d bytes donwloaded... decompresssing...\n", size)
+	prefix := filepath.Join(CacheDirectory(), ver)
+	extractTar(prefix, readGzipFile(buf))
 
 	return nil
 }
@@ -151,58 +191,4 @@ func extractTar(prefix string, data *bytes.Buffer) {
 			tw.Close()
 		}
 	}
-}
-
-// checks for the existance of the given version in the cache
-func Exists(ver string) bool {
-	_, err := os.Stat(filepath.Join(CacheDirectory(), ver))
-	return err == nil
-}
-
-func alreadyCompiled(ver string) bool {
-	_, err := os.Stat(filepath.Join(CacheDirectory(), ver, "go", "bin", "go"))
-	return err == nil
-}
-
-// compile a given version of go in the cache
-func Compile(ver string) error {
-	currdir, _ := os.Getwd()
-	err := os.Chdir(filepath.Join(CacheDirectory(), ver, "go", "src"))
-	if err != nil {
-		return err
-	}
-	defer func() { os.Chdir(currdir) }()
-
-	cmd := "./all.bash"
-	if runtime.GOOS == "windows" {
-		cmd = "./all.bat"
-	}
-	p := exec.Command(cmd)
-	out, err := p.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	rd := bufio.NewReader(out)
-	if err := p.Start(); err != nil {
-		return err
-	}
-
-	// read the command output and update the terminal
-	for {
-		str, err := rd.ReadString('\n')
-		if err != nil {
-			if err != io.EOF {
-				logger.Fatal(err)
-			}
-			break
-		}
-		logger.Printf("%s", str)
-	}
-
-	if _, err := os.Stat(
-		filepath.Join(CacheDirectory(), ver, "go", "bin", "go")); err != nil {
-		return fmt.Errorf("Go %s wasn't compiled properly!", ver)
-	}
-
-	return nil
 }

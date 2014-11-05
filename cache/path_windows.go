@@ -21,8 +21,10 @@
 package cache
 
 import (
+	"fmt"
 	"os"
 	"path"
+	"runtime"
 )
 
 // Return CacheDirectory on Windows, %APPDATA%\\VenGO
@@ -32,4 +34,9 @@ func CacheDirectory() string {
 		APPDATA = ExpandUser("~")
 	}
 	return path.Join(APPDATA, "VenGO")
+}
+
+// return back the binary string version for downloads in Microsoft Windows
+func getBinaryVersion(version string) string {
+	return fmt.Sprintf("%s.windows-%s", version, runtime.GOARCH)
 }
