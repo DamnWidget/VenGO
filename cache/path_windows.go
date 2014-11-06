@@ -37,6 +37,6 @@ func CacheDirectory() string {
 }
 
 // return back the binary string version for downloads in Microsoft Windows
-func getBinaryVersion(version string) string {
+func GetBinaryVersion(version string) string {
 	return fmt.Sprintf("%s.windows-%s", version, runtime.GOARCH)
 }

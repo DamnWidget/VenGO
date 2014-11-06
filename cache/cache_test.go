@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -146,6 +147,7 @@ var _ = Describe("Cache", func() {
 						_, err := os.Stat(filepath.Join(cache.CacheDirectory(), "1.2.2"))
 						Expect(err).NotTo(HaveOccurred())
 						os.RemoveAll(filepath.Join(cache.CacheDirectory(), "1.2.2"))
+						debug.FreeOSMemory()
 					})
 				})
 
@@ -156,6 +158,7 @@ var _ = Describe("Cache", func() {
 						_, err := os.Stat(filepath.Join(cache.CacheDirectory(), "1.1.1"))
 						Expect(err).NotTo(HaveOccurred())
 						os.RemoveAll(filepath.Join(cache.CacheDirectory(), "1.1.1"))
+						debug.FreeOSMemory()
 					})
 				})
 			})
@@ -172,6 +175,7 @@ var _ = Describe("Cache", func() {
 						Expect(err).NotTo(HaveOccurred())
 						os.RemoveAll(
 							filepath.Join(cache.CacheDirectory(), binary))
+						debug.FreeOSMemory()
 					})
 				})
 
@@ -185,6 +189,7 @@ var _ = Describe("Cache", func() {
 						Expect(err).NotTo(HaveOccurred())
 						os.RemoveAll(
 							filepath.Join(cache.CacheDirectory(), binary))
+						debug.FreeOSMemory()
 					})
 				})
 			})
