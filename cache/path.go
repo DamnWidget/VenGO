@@ -32,11 +32,9 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/DamnWidget/VenGO/logger"
-	"github.com/mcuadros/go-version"
 )
 
 // Expand the user home tilde to the right user home path
@@ -53,55 +51,6 @@ func ExpandUser(path string) string {
 func Exists(ver string) bool {
 	_, err := os.Stat(filepath.Join(CacheDirectory(), ver))
 	return err == nil
-}
-
-// Download an specific version of Golang binary files
-func CacheDownloadBinary(ver string) error {
-	numeric_ver := ver
-	ver = GetBinaryVersion(ver)
-	expected_sha1, err := Checksum(ver)
-	if err != nil {
-		return err
-	}
-
-	if !Exists(ver) {
-		url := fmt.Sprintf(
-			"https://storage.googleapis.com/golang/go%s.tar.gz", ver)
-		if version.Compare(version.Normalize(numeric_ver), "1.2.2", "<") {
-			url = fmt.Sprintf(
-				"https://go.googlecode.com/files/go%s.tar.gz", ver)
-		}
-		if runtime.GOOS == "windows" {
-			url = strings.Replace(url, ".tar.gz", ".zip", -1)
-		}
-		if err := downloadAndExtract(ver, url, expected_sha1); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Download an specific version of Golang source code
-func CacheDownload(ver string) error {
-	expected_sha1, err := Checksum(ver)
-	if err != nil {
-		return err
-	}
-
-	if !Exists(ver) {
-		url := fmt.Sprintf(
-			"https://storage.googleapis.com/golang/go%s.src.tar.gz", ver)
-		if version.Compare(version.Normalize(ver), "1.2.2", "<") {
-			url = fmt.Sprintf(
-				"https://go.googlecode.com/files/go%s.src.tar.gz", ver)
-		}
-		if err := downloadAndExtract(ver, url, expected_sha1); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // download and extract the given file checking the given sha1 signature

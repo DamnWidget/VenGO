@@ -30,6 +30,7 @@ import (
 	"runtime"
 
 	"github.com/DamnWidget/VenGO/logger"
+	"github.com/mcuadros/go-version"
 )
 
 // determine if a Go version has been already compiled in the cache
@@ -76,6 +77,28 @@ func Compile(ver string) error {
 	if _, err := os.Stat(
 		filepath.Join(CacheDirectory(), ver, "go", "bin", "go")); err != nil {
 		return fmt.Errorf("Go %s wasn't compiled properly!", ver)
+	}
+
+	return nil
+}
+
+// Download an specific version of Golang source code
+func CacheDownload(ver string) error {
+	expected_sha1, err := Checksum(ver)
+	if err != nil {
+		return err
+	}
+
+	if !Exists(ver) {
+		url := fmt.Sprintf(
+			"https://storage.googleapis.com/golang/go%s.src.tar.gz", ver)
+		if version.Compare(version.Normalize(ver), "1.2.2", "<") {
+			url = fmt.Sprintf(
+				"https://go.googlecode.com/files/go%s.src.tar.gz", ver)
+		}
+		if err := downloadAndExtract(ver, url, expected_sha1); err != nil {
+			return err
+		}
 	}
 
 	return nil
