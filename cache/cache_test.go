@@ -74,7 +74,6 @@ var _ = Describe("Cache", func() {
 
 	Describe("Checksum return an error if version is not supported", func() {
 		It("Should be empty string and formatted error", func() {
-			time.Sleep(5 * time.Second)
 			sha1, err := cache.Checksum("1.0")
 
 			Expect(sha1).To(BeEmpty())
