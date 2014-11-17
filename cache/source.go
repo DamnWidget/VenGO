@@ -48,9 +48,9 @@ func Compile(ver string) error {
 	}
 	defer func() { os.Chdir(currdir) }()
 
-	cmd := "./all.bash"
+	cmd := "./make.bash"
 	if runtime.GOOS == "windows" {
-		cmd = "./all.bat"
+		cmd = "./make.bat"
 	}
 	p := exec.Command(cmd)
 	out, err := p.StdoutPipe()

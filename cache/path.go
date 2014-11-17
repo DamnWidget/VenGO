@@ -37,6 +37,8 @@ import (
 	"github.com/DamnWidget/VenGO/logger"
 )
 
+var VenGO_PATH = filepath.Join(ExpandUser(), ".VenGO")
+
 // Expand the user home tilde to the right user home path
 func ExpandUser(path string) string {
 	u, err := user.Current()
