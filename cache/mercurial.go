@@ -24,6 +24,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -38,15 +39,19 @@ const REPO = "https://go.googlecode.com/hg/"
 
 var TARGET = filepath.Join(CacheDirectory(), "mercurial")
 
-func CacheDonwloadMercurial(ver string) error {
+var logFile *os.File
+
+func CacheDonwloadMercurial(ver string, forceDownload ...bool) error {
+	logFile = openMercurialLogs()
 	availableVersions := getVersionTags()
 	if availableVersions == nil {
 		logger.Fatal("Fatal error, exiting...")
 	}
+	ver = normalizeVersion(ver)
 
 	index := lookupVersion(ver, availableVersions)
 	if index == -1 {
-		logger.Fatalf("%s doesn't seems to ve a valid Go release\n", ver)
+		return fmt.Errorf("%s doesn't seems to be a valid Go release\n", ver)
 	}
 	if err := cloneSource(); err != nil {
 		return err
@@ -54,23 +59,52 @@ func CacheDonwloadMercurial(ver string) error {
 	if err := checkSource(availableVersions[index]); err != nil {
 		return err
 	}
+
+	force := false
+	if len(forceDownload) != 0 && forceDownload[0] {
+		force = true
+	}
+	if exists, err := SourceExists(ver); err != nil {
+		logger.Fatal(err)
+	} else if !exists || force {
+		if err := copySource(ver); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
+func normalizeVersion(ver string) string {
+	if !strings.HasPrefix(ver, "go") {
+		if strings.HasPrefix(ver, "1") {
+			return fmt.Sprintf("go%s", ver)
+		}
+		if !strings.HasPrefix(ver, "release") {
+			if strings.HasPrefix(ver, "5") || strings.HasPrefix(ver, "6") {
+				return fmt.Sprintf("release.r%s", ver)
+			}
+		}
+	}
+
+	return ver
+}
+
 func checkSource(tag string) error {
-	logger.Printf("Checking %s...", tag)
+	logger.Printf("Checking %s...\n", tag)
 	out, err := exec.Command("hg", "pull", "-R", TARGET).CombinedOutput()
 	if err != nil {
 		return err
 	}
-	writeLogs(true, out)
-	logger.Println("\t[Done]")
+	logOutput(out)
 	return nil
 }
 
 func cloneSource() error {
-	logger.Print("Downloading Go source from mercurial...")
+	if MercurialExists() {
+		return nil
+	}
 
+	logger.Println("Downloading Go source from mercurial...")
 	// check if mercurial command line is installed
 	if _, err := exec.LookPath("hg"); err != nil {
 		logger.Fatal("Mercurial is not installed on your machine.")
@@ -79,8 +113,21 @@ func cloneSource() error {
 	if err != nil {
 		return err
 	}
-	writeLogs(false, out)
-	logger.Println("\t [Done]")
+	logOutput(out)
+	return nil
+}
+
+func copySource(ver string) error {
+	logger.Println("Copying source...")
+	destination := filepath.Join(CacheDirectory(), ver)
+	os.RemoveAll(destination)
+	out, err := exec.Command(
+		"hg", "clone", "-u", ver, TARGET, destination).CombinedOutput()
+	if err != nil {
+		logger.Println(err)
+		return err
+	}
+	logOutput(out)
 	return nil
 }
 
@@ -95,6 +142,7 @@ func lookupVersion(ver string, availableVersions []string) (index int) {
 func getVersionTags() (tags []string) {
 	resp, err := http.Get("https://go.googlecode.com/hg/.hgtags")
 	if err != nil {
+		log.Println(err)
 		return nil
 	}
 
@@ -116,8 +164,13 @@ func getVersionTags() (tags []string) {
 
 	// return releases only
 	for _, tag := range strings.Split(buf.String(), "\n") {
-		if strings.HasPrefix(tag, "release") || strings.HasPrefix(tag, "go1") {
-			tags = append(tags, tag)
+		if tag == "" {
+			continue
+		}
+
+		ver := strings.Split(tag, " ")[1]
+		if strings.HasPrefix(ver, "release") || strings.HasPrefix(ver, "go1") {
+			tags = append(tags, ver)
 		}
 	}
 
@@ -126,20 +179,20 @@ func getVersionTags() (tags []string) {
 	return tags
 }
 
-func writeLogs(logAppend bool, out []byte) {
+func logOutput(out []byte) {
+	logFile.Write(out)
+}
+
+func openMercurialLogs() *os.File {
 	logsDir := filepath.Join(CacheDirectory(), "logs")
-	openFlags := os.O_WRONLY | os.O_CREATE
-	if !logAppend {
-		openFlags |= os.O_TRUNC
-	}
+	openFlags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 	file, err := os.OpenFile(
 		filepath.Join(logsDir, "mercurial-go.log"), openFlags, 0644,
 	)
 	if err != nil {
 		logger.Printf("error: can't open log file to write: %s\n", err)
 		logger.Println("this is a non fatal error, ignoring...")
-	} else {
-		file.Write(out)
-		file.Close()
+		return nil
 	}
+	return file
 }

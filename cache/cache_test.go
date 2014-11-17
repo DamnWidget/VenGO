@@ -3,13 +3,14 @@ package cache_test
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
 	"runtime/debug"
 	"strings"
-	"time"
 
 	"github.com/DamnWidget/VenGO/cache"
 )
@@ -26,7 +27,8 @@ func runningOnTravis() bool {
 
 var _ = Describe("Cache", func() {
 
-	time.Sleep(5 * time.Second)
+	// disable log output
+	log.SetOutput(ioutil.Discard)
 
 	Describe("ExpandUser returns valid path depending on platform", func() {
 		var re *regexp.Regexp
@@ -127,10 +129,74 @@ var _ = Describe("Cache", func() {
 			})
 		})
 
+		Describe("SourceExists", func() {
+			var err error
+			var dirName string
+			BeforeEach(func() {
+				dirName, err = ioutil.TempDir(cache.CacheDirectory(), "VenGO-")
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			AfterEach(func() {
+				err := os.RemoveAll(dirName)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			Context("Passing a non existing directory", func() {
+				It("Should return false", func() {
+					exists, err := cache.SourceExists("99")
+					Expect(err).ToNot(HaveOccurred())
+					Expect(exists).To(BeFalse())
+				})
+			})
+
+			Context("Passing a directory that exists", func() {
+				It("Should return true", func() {
+					exists, err := cache.SourceExists(path.Base(dirName))
+					Expect(err).ToNot(HaveOccurred())
+					Expect(exists).To(BeTrue())
+				})
+			})
+		})
+
+		Describe("CacheDonwloadMercurial works as expected", func() {
+			Context("Passing a non valid Go version", func() {
+				It("Should fail and give back a descriptive error", func() {
+					err := cache.CacheDonwloadMercurial("20.0")
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(Equal(fmt.Errorf(
+						"20.0 doesn't seems to be a valid Go release\n"),
+					))
+				})
+			})
+
+			Context("Passing a valid Go version", func() {
+				It("Should clone it into the cache directory", func() {
+					err := cache.CacheDonwloadMercurial("go1.1")
+					Expect(err).ToNot(HaveOccurred())
+					_, err = os.Stat(filepath.Join(cache.CacheDirectory(), "go1.1"))
+					Expect(err).NotTo(HaveOccurred())
+					os.RemoveAll(filepath.Join(cache.CacheDirectory(), "go1.1"))
+					debug.FreeOSMemory()
+				})
+			})
+
+			Context("Passing a valid Go version with no go prefix", func() {
+				It("Should clone it into the cache directory", func() {
+					err := cache.CacheDonwloadMercurial("1")
+					Expect(err).ToNot(HaveOccurred())
+					_, err = os.Stat(filepath.Join(cache.CacheDirectory(), "go1"))
+					Expect(err).NotTo(HaveOccurred())
+					debug.FreeOSMemory()
+					os.RemoveAll(filepath.Join(cache.CacheDirectory(), "go1"))
+				})
+			})
+		})
+
 		if RunSlowTests {
 			Describe("CacheDownload works as expected", func() {
 				Context("Passing a non valid Go version", func() {
-					It("Should not be nil and formatted", func() {
+					It("Should fail and give back a descriptive error", func() {
 						err := cache.CacheDownload("1.0")
 						Expect(err).To(HaveOccurred())
 						Expect(err).To(Equal(fmt.Errorf(

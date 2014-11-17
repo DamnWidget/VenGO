@@ -29,12 +29,12 @@ import (
 
 var logFile *os.File
 var stdLogFile *log.Logger
-var std = log.New(os.Stdout, "", log.LstdFlags)
 
 func init() {
+	log.SetOutput(os.Stdout)
 	logFile, err := os.Create(filepath.Join(os.TempDir(), "VenGO.log"))
 	if err != nil {
-		std.Fatal(err)
+		log.Fatal(err)
 	}
 	stdLogFile = log.New(logFile, "", log.LstdFlags)
 }
@@ -42,27 +42,27 @@ func init() {
 // Printf calls Logger.Printf to print to the logger.
 // Arguments are handled in the manner of fmt.Printf.
 func Printf(format string, v ...interface{}) {
-	std.Printf(format, v...)
+	log.Printf(format, v...)
 	go stdLogFile.Printf(format, v...)
 }
 
 // Print calls Logger.Print to print to the logger.
 // Arguments are handled in the manner of fmt.Print.
 func Print(v ...interface{}) {
-	std.Print(v)
-	go stdLogFile.Print(v)
+	log.Print(v...)
+	go stdLogFile.Print(v...)
 }
 
 // Println calls Logger.Println to print to the logger.
 // Arguments are handled in the manner of fmt.Println.
 func Println(v ...interface{}) {
-	std.Println(v...)
+	log.Println(v...)
 	go stdLogFile.Println(v...)
 }
 
 // Fatal is equivalent to l.Print() followed by a call to os.Exit(1).
 func Fatal(v ...interface{}) {
-	std.Output(2, fmt.Sprint(v...))
+	log.Fatal(v...)
 	stdLogFile.Output(2, fmt.Sprint(v...))
 	logFile.Close()
 	os.Exit(1)
@@ -70,8 +70,8 @@ func Fatal(v ...interface{}) {
 
 // Fatalf is equivalent to l.Printf() followed by a call to os.Exit(1).
 func Fatalf(format string, v ...interface{}) {
+	log.Fatalf(format, v...)
 	s := fmt.Sprintf(format, v...)
-	std.Output(2, s)
 	stdLogFile.Output(2, s)
 	logFile.Close()
 	os.Exit(1)
@@ -79,8 +79,8 @@ func Fatalf(format string, v ...interface{}) {
 
 // Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
 func Fatalln(v ...interface{}) {
+	log.Fatalln(v...)
 	s := fmt.Sprintln(v...)
-	std.Output(2, s)
 	stdLogFile.Output(2, s)
 	logFile.Close()
 	os.Exit(1)
@@ -88,24 +88,24 @@ func Fatalln(v ...interface{}) {
 
 // Panic is equivalent to l.Print() followed by a call to panic().
 func Panic(v ...interface{}) {
+	log.Panic(v...)
 	s := fmt.Sprint(v...)
-	std.Output(2, s)
 	stdLogFile.Output(2, s)
 	panic(s)
 }
 
 // Panicf is equivalent to l.Printf() followed by a call to panic().
 func Panicf(format string, v ...interface{}) {
+	log.Panicf(format, v...)
 	s := fmt.Sprintf(format, v...)
-	std.Output(2, s)
 	stdLogFile.Output(2, s)
 	panic(s)
 }
 
 // Panicln is equivalent to l.Println() followed by a call to panic().
 func Panicln(v ...interface{}) {
+	log.Panicln(v...)
 	s := fmt.Sprintln(v...)
-	std.Output(2, s)
 	stdLogFile.Output(2, s)
 	panic(s)
 }
