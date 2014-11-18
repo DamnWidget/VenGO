@@ -26,6 +26,7 @@ import (
 	"text/template"
 
 	"github.com/DamnWidget/VenGO/cache"
+	"github.com/DamnWidget/VenGO/logger"
 )
 
 var environTemplate = `#!/bin/bash
@@ -43,7 +44,7 @@ export PS1="{{.PS1}} $PS1"
 `
 
 type Environment struct {
-	Goroot, Gotooldir, Gopath, PS1, ver string
+	Goroot, Gotooldir, Gopath, PS1 string
 }
 
 // Create a new Environment struct and return it addrees back
@@ -55,15 +56,15 @@ func NewEnvironment(root, tooldir, path, name string) *Environment {
 func (e *Environment) Generate() {
 	file, err := os.OpenFile(
 		filepath.Join(cache.VenGO_PATH, e.PS1),
-		os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
+		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644,
 	)
-    if err != nil {
-        logger.Fatal(err)
-    }
-    defer file.Close()
-	tpl := template.Must(template.New("environment").Parse(e))
-    err = tpl.Execute(file, environTemplate)
-    if err != nil {
-        logger.Println("while generating environment template:", err)
-    }
+	if err != nil {
+		logger.Fatal(err)
+	}
+	defer file.Close()
+	tpl := template.Must(template.New("environment").Parse(environTemplate))
+	err = tpl.Execute(file, e)
+	if err != nil {
+		logger.Println("while generating environment template:", err)
+	}
 }
