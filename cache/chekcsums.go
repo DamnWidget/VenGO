@@ -168,3 +168,37 @@ func Checksum(version string) (string, error) {
 	}
 	return "", fmt.Errorf("%s is not a VenGO supported version you must donwload and compile it yourself", version)
 }
+
+// return back the list of downloaable sources
+func AvailableSources() []string {
+	return availableDownloads(false)
+}
+
+// return back the list of donwloadable binaries
+func AvailableBinaries() []string {
+	return availableDownloads(true)
+}
+
+// return back all the available donwloads
+func AvailableDownloads() []string {
+	return availableDownloads(true, true)
+}
+
+// return available donwloads depending on the given options
+func availableDownloads(binaries bool, both ...bool) []string {
+	versions := []string{}
+	for k, _ := range checksums {
+		if len(both) > 0 && both[0] {
+			versions = append(versions, k)
+			continue
+		}
+		if !binaries && len(k) <= 8 {
+			versions = append(versions, k)
+		}
+		if binaries && len(k) > 8 {
+			versions = append(versions, k)
+		}
+	}
+
+	return versions
+}

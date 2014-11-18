@@ -21,50 +21,102 @@
 package env
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"text/template"
 
 	"github.com/DamnWidget/VenGO/cache"
 	"github.com/DamnWidget/VenGO/logger"
 )
 
-var environTemplate = `#!/bin/bash
-
-export PREV_GOROOT=$GOROOT
-export PREV_GOTOOLDIR=$GOTOOLDIR
-export PREV_GOPATH=$GOPATH
-export PREV_PS1=$PS1
-
-export GOROOT={{.Goroot}}
-export GOTOOLDIR={{.Gotooldir}}
-export GOPATH={{.Gopath}}
-
-export PS1="{{.PS1}} $PS1"
-`
+const environTemplate = "tpl/activate"
 
 type Environment struct {
-	Goroot, Gotooldir, Gopath, PS1 string
+	Goroot     string
+	Gotooldir  string
+	Gopath     string
+	PS1        string
+	VenGO_PATH string
 }
 
 // Create a new Environment struct and return it addrees back
-func NewEnvironment(root, tooldir, path, name string) *Environment {
-	return &Environment{root, tooldir, path, name}
+func NewEnvironment(name, prompt string) *Environment {
+	VenGO_PATH := filepath.Join(cache.VenGO_PATH, name)
+	osArch := fmt.Sprintf("%s_%s", runtime.GOOS, runtime.GOARCH)
+	return &Environment{
+		Goroot:     filepath.Join(VenGO_PATH, "lib"),
+		Gotooldir:  filepath.Join(VenGO_PATH, "lib", "pkg", "tool", osArch),
+		Gopath:     filepath.Join(VenGO_PATH),
+		PS1:        prompt,
+		VenGO_PATH: VenGO_PATH,
+	}
 }
 
 // Generate an environment file
-func (e *Environment) Generate() {
-	file, err := os.OpenFile(
-		filepath.Join(cache.VenGO_PATH, e.PS1),
-		os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644,
-	)
+func (e *Environment) Generate() error {
+	file, err := e.checkPath()
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
 	defer file.Close()
-	tpl := template.Must(template.New("environment").Parse(environTemplate))
+	activateTpl, err := ioutil.ReadFile(environTemplate)
+	if err != nil {
+		logger.Println("while reading activate script template file:", err)
+		return err
+	}
+	tpl := template.Must(template.New("environment").Parse(string(activateTpl)))
 	err = tpl.Execute(file, e)
 	if err != nil {
 		logger.Println("while generating environment template:", err)
+		return err
 	}
+
+	return nil
+}
+
+// checks if the environment path exists, and create it if doesn't
+// returns a file object or error if fails
+func (e *Environment) checkPath() (*os.File, error) {
+	fileName := filepath.Join(e.VenGO_PATH, "bin", "activate")
+	return e.createFile(fileName)
+}
+
+func (e *Environment) createFile(filename string) (*os.File, error) {
+	file, err := os.OpenFile(
+		filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err := os.MkdirAll(filepath.Join(e.VenGO_PATH, "bin"), 0755)
+			if err != nil {
+				return nil, err
+			}
+			return e.createFile(filename)
+		}
+		return nil, err
+	}
+	return file, nil
+}
+
+// install the given version into the environment creating a Symlink to it
+func (e *Environment) Install(ver string) error {
+	if !cache.AlreadyCompiled(ver) {
+		if err := cache.Compile(ver); err != nil {
+			logger.Println("while installing:", err)
+			return err
+		}
+	}
+
+	path := filepath.Join(cache.CacheDirectory(), ver)
+	if _, err := os.Stat(path); err != nil {
+		path = filepath.Join(cache.CacheDirectory(), fmt.Sprintf("go%s", ver))
+	}
+	if err := os.Symlink(path, filepath.Join(e.VenGO_PATH, "lib")); err != nil {
+		logger.Println("while creating symlink:", err)
+		return err
+	}
+
+	return nil
 }

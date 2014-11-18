@@ -24,10 +24,21 @@ default: build
 clean:
 	go clean
 
-test:
+test: cache_test env_test
+
+cache_test:
 	cd cache && ginkgo -r --randomizeAllSpecs --failOnPending --randomizeSuites --trace --race
+.PHONY: cache_test
+
+env_test:
+	cd env && ginkgo -r --randomizeAllSpecs --failOnPending --randomizeSuites --trace --race
+.PHONY: env_test
+
+commands_test:
+	cd commands && ginkgo -r --randomizeAllSpecs --failOnPending --randomizeSuites --trace --race
+.PHONY: commands_test
 
 build:
 	go build -v -x -o vengo ./application
 
-.SILENT: clean build test
+.SILENT: clean build test cache_test env_test commands_test

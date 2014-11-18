@@ -34,17 +34,28 @@ import (
 )
 
 // determine if a Go version has been already compiled in the cache
-func alreadyCompiled(ver string) bool {
+func AlreadyCompiled(ver string) bool {
 	_, err := os.Stat(filepath.Join(CacheDirectory(), ver, "go", "bin", "go"))
+	if err != nil {
+		ver = fmt.Sprintf("go%s", ver)
+		_, err := os.Stat(filepath.Join(CacheDirectory(), ver, "bin", "go"))
+		return err == nil
+	}
 	return err == nil
 }
 
 // compile a given version of go in the cache
 func Compile(ver string) error {
 	currdir, _ := os.Getwd()
+	prefixed := false
 	err := os.Chdir(filepath.Join(CacheDirectory(), ver, "go", "src"))
 	if err != nil {
-		return err
+		ver = fmt.Sprintf("go%s", ver)
+		prefixed = true
+		if err := os.Chdir(
+			filepath.Join(CacheDirectory(), ver, "src")); err != nil {
+			return err
+		}
 	}
 	defer func() { os.Chdir(currdir) }()
 
@@ -74,8 +85,12 @@ func Compile(ver string) error {
 		logger.Printf("%s", str)
 	}
 
-	if _, err := os.Stat(
-		filepath.Join(CacheDirectory(), ver, "go", "bin", "go")); err != nil {
+	goBin := filepath.Join(CacheDirectory(), ver, "go", "bin", "go")
+	if prefixed {
+		goBin = filepath.Join(CacheDirectory(), ver, "bin", "go")
+	}
+	if _, err := os.Stat(goBin); err != nil {
+		logger.Println(err)
 		return fmt.Errorf("Go %s wasn't compiled properly!", ver)
 	}
 

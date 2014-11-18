@@ -41,6 +41,12 @@ var TARGET = filepath.Join(CacheDirectory(), "mercurial")
 
 var logFile *os.File
 
+// get mercurial tags from mercurial repo
+func Tags() []string {
+	return getVersionTags()
+}
+
+// Donwload mercurial repository and clone the given version
 func CacheDonwloadMercurial(ver string, forceDownload ...bool) error {
 	logFile = openMercurialLogs()
 	availableVersions := getVersionTags()

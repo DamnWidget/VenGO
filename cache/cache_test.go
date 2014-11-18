@@ -105,6 +105,24 @@ var _ = Describe("Cache", func() {
 		})
 	})
 
+	Describe("AvilableSources", func() {
+		It("Should return 13 sources", func() {
+			Expect(len(cache.AvailableSources())).To(Equal(13))
+		})
+	})
+
+	Describe("AvilableBinaries", func() {
+		It("Should return 98 binaries", func() {
+			Expect(len(cache.AvailableBinaries())).To(Equal(98))
+		})
+	})
+
+	Describe("AvilableDonwloads", func() {
+		It("Should return 13 sources plus 98 binaries", func() {
+			Expect(len(cache.AvailableDownloads())).To(Equal(13 + 98))
+		})
+	})
+
 	if !runningOnTravis() {
 		Describe("Exists works as expected", func() {
 			Context("Used in a file that actually exists", func() {
@@ -193,6 +211,20 @@ var _ = Describe("Cache", func() {
 			})
 		})
 
+		Describe("AlreadyCompiled", func() {
+			It("Shoudl return true if the source has been compiled", func() {
+				os.MkdirAll(filepath.Join(cache.CacheDirectory(), "test1", "go", "bin"), 0755)
+				filename := filepath.Join(cache.CacheDirectory(), "test1", "go", "bin", "go")
+				err := ioutil.WriteFile(filename, []byte{}, 0644)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(cache.AlreadyCompiled("test1")).To(BeTrue())
+				os.RemoveAll(filepath.Join(cache.CacheDirectory(), "test1"))
+
+				Expect(cache.AlreadyCompiled("test1")).To(BeFalse())
+			})
+		})
+
 		if RunSlowTests {
 			Describe("CacheDownload works as expected", func() {
 				Context("Passing a non valid Go version", func() {
@@ -269,12 +301,11 @@ var _ = Describe("Cache", func() {
 				})
 
 				Context("Giving an existent version", func() {
-					It("Shoudl return nil and compile it", func() {
-						Expect(cache.Compile("1.3.3")).To(Succeed())
+					It("Shoudl rcompile it", func() {
+						err := cache.CacheDonwloadMercurial("1.3.3")
 
-						_, err := os.Stat(filepath.Join(
-							cache.CacheDirectory(), "1.3.3", "go", "bin", "go"))
-						Expect(err).NotTo(HaveOccurred())
+						Expect(err).ToNot(HaveOccurred())
+						Expect(cache.Compile("1.3.3")).To(Succeed())
 					})
 				})
 			})
