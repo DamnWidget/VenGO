@@ -1,0 +1,41 @@
+
+# Copyright (C) 2014  Oscar Campos <oscar.campos@member.fsf.org>
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+# See LICENSE file for more details.
+
+# usage: lsenvs
+function lsenvs {
+    # borrowed from virtualenvwrapper by Doug Hellmann
+    # https://pypi.python.org/pypi/virtualenvwrapper
+
+    # NOTE: DO NOT use ls or cd here because colorized versions spew control
+    #       characters into the output list.
+    # echo seems a little faster than find, even with -depth 3.
+    #
+    # 1. Look for environments by finding the activate scripts.
+    #    Use a subshell so we can suppress the message printed
+    #    by zsh if the glob pattern fails to match any files.
+    # 2. Strip the WORKON_HOME prefix from each name.
+    # 3. Strip the bindir/activate script suffix.
+    # 4. Format the output to show one name on a line.
+    # 5. Eliminate any lines with * on them because that means there
+    #    were no envs.
+    (cd "$VENGO_HOME" && echo */bin/activate) 2>/dev/null \
+        | command \sed "s|/bin/activate||g" \
+        | command \fmt -w 1 \
+        | (unset GREP_OPTIONS; command \egrep -v '^\*$') 2>/dev/null
+}
