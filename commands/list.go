@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -71,19 +72,21 @@ func (l *List) Run() (string, error) {
 	sources := cache.AvailableSources()
 	binaries := cache.AvailableBinaries()
 
-	versions := []string{"Installed"}
+	versions := []string{}
 	installed, err := l.getInstalled(tags, sources, binaries)
 	if err != nil {
 		logger.Println("while running List command:", err)
 		return "error while running the command", err
 	}
 	if l.ShowBoth {
+		versions = []string{"Installed"}
 		versions = append(versions, installed...)
 		versions = append(versions, "\nAvailable for Installation")
 		versions = append(
 			versions, l.getNonInstalled(installed, tags, sources, binaries)...)
 	} else {
 		if l.ShowInstalled {
+			versions = []string{"Installed"}
 			versions = append(versions, installed...)
 		}
 		if l.ShowNotInstalled {
@@ -137,15 +140,16 @@ func (l *List) getInstalled(tags, sources, binaries []string) ([]string, error) 
 	}
 	versions := []string{}
 	for _, file := range files {
-		if file != "mercurial" {
+		filename := path.Base(file)
+		if filename != "mercurial" && filename != "logs" {
 			stat, err := os.Stat(file)
 			if err != nil {
 				logger.Println("while getting installed versions:", err)
 				return nil, err
 			}
 			if stat.IsDir() {
-				if l.isValidVersion(file, tags, sources, binaries) {
-					versions = append(versions, fmt.Sprintf("    %s", file))
+				if l.isValidVersion(filename, tags, sources, binaries) {
+					versions = append(versions, fmt.Sprintf("    %s", filename))
 				}
 			}
 		}
@@ -156,7 +160,7 @@ func (l *List) getInstalled(tags, sources, binaries []string) ([]string, error) 
 
 // return a list of non installed go versions
 func (l *List) getNonInstalled(v, tags, sources, binaries []string) []string {
-	var versions = make([]string, len(tags)+len(sources)+len(binaries)-len(v))
+	var versions = make([]string, len(tags)+len(sources)+len(binaries))
 	installed_versions := make([]string, len(v))
 	copy(installed_versions, v)
 	c := 0
