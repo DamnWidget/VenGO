@@ -2,6 +2,7 @@ package commands_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -174,10 +175,10 @@ var _ = Describe("Commands", func() {
 						Expect(err).ToNot(HaveOccurred())
 						splitVers := strings.Split(versions, "\n")
 						Expect(splitVers[0]).To(Equal(commands.Ok("Installed")))
-						Expect(splitVers[1]).To(Equal("    1.3.3"))
-						Expect(splitVers[2]).To(Equal("    go1"))
-						Expect(splitVers[3]).To(Equal("    go1.1"))
-						Expect(splitVers[4]).To(Equal("    go1.2.1"))
+						Expect(splitVers[1]).To(Equal(fmt.Sprintf("    1.3.3 %s", commands.Ok("✔"))))
+						Expect(splitVers[2]).To(Equal(fmt.Sprintf("    go1 %s", commands.Ok("✔"))))
+						Expect(splitVers[3]).To(Equal(fmt.Sprintf("    go1.1 %s", commands.Ok("✔"))))
+						Expect(splitVers[4]).To(Equal(fmt.Sprintf("    go1.2.1 %s", commands.Ok("✔"))))
 						Expect(splitVers[5]).To(Equal(commands.Ok("Available for Installation")))
 						Ω(len(splitVers)).Should(BeNumerically(">", 100))
 					})
@@ -216,10 +217,10 @@ var _ = Describe("Commands", func() {
 						Expect(err).ToNot(HaveOccurred())
 						splitVers := strings.Split(versions, "\n")
 						Expect(splitVers[0]).To(Equal(commands.Ok("Installed")))
-						Expect(splitVers[1]).To(Equal("    1.3.3"))
-						Expect(splitVers[2]).To(Equal("    go1"))
-						Expect(splitVers[3]).To(Equal("    go1.1"))
-						Expect(splitVers[4]).To(Equal("    go1.2.1"))
+						Expect(splitVers[1]).To(Equal(fmt.Sprintf("    1.3.3 %s", commands.Ok("✔"))))
+						Expect(splitVers[2]).To(Equal(fmt.Sprintf("    go1 %s", commands.Ok("✔"))))
+						Expect(splitVers[3]).To(Equal(fmt.Sprintf("    go1.1 %s", commands.Ok("✔"))))
+						Expect(splitVers[4]).To(Equal(fmt.Sprintf("    go1.2.1 %s", commands.Ok("✔"))))
 					})
 
 					It("Should return a 4 elements list in Json format", func() {

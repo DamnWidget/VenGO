@@ -96,7 +96,9 @@ func (l *List) display(versions map[string][]string) (string, error) {
 	if l.DisplayAs == Text {
 		if l.ShowBoth || l.ShowInstalled {
 			output = append(output, Ok("Installed"))
-			output = append(output, versions["installed"]...)
+			for _, v := range versions["installed"] {
+				output = append(output, fmt.Sprintf("%v %s", v, Ok("✔")))
+			}
 		}
 		if l.ShowBoth || l.ShowNotInstalled {
 			output = append(output, Ok("Available for Installation"))
@@ -160,13 +162,18 @@ func (l *List) getNonInstalled(v, tags, sources, binaries []string) []string {
 	copy(installed_versions, v)
 	c := 0
 	for _, ver := range append(binaries, append(tags, sources...)...) {
+		found := false
 		for i, installed := range installed_versions {
-			if installed == ver {
+			if strings.TrimSpace(installed) == strings.TrimSpace(ver) {
 				// skip this element and reduce v
 				installed_versions = append(
 					installed_versions[:i], installed_versions[i+1:]...)
+				found = true
 				continue
 			}
+		}
+		if found {
+			continue
 		}
 		versions[c] = fmt.Sprintf("    %s", ver)
 		c++
