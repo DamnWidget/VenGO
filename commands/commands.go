@@ -20,10 +20,22 @@
 
 package commands
 
+import "fmt"
+
 // Runner is a interface that wraps the execution of a command
 //
 // Runner returns a string (that can be empty) with the results of the
 // executed command and an error, that should be nil if no error occurred
 type Runner interface {
 	Run() (string, error)
+}
+
+// adds the \x1b[32m prefix and the \x1b[0m suffix to the given string
+func Ok(buf string) string {
+	return fmt.Sprintf("\x1b[32m%s\x1b[0m", buf)
+}
+
+// adds the \x1b[31m prefix and the \x1b[0m suffix to the given string
+func Fail(buf string) string {
+	return fmt.Sprintf("\x1b[31m%s\x1b[0m", buf)
 }

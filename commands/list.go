@@ -72,57 +72,52 @@ func (l *List) Run() (string, error) {
 	sources := cache.AvailableSources()
 	binaries := cache.AvailableBinaries()
 
-	versions := []string{}
+	versions := map[string][]string{
+		"installed": []string{},
+		"available": []string{},
+	}
 	installed, err := l.getInstalled(tags, sources, binaries)
 	if err != nil {
 		logger.Println("while running List command:", err)
 		return "error while running the command", err
 	}
-	if l.ShowBoth {
-		versions = []string{"Installed"}
-		versions = append(versions, installed...)
-		versions = append(versions, "\nAvailable for Installation")
-		versions = append(
-			versions, l.getNonInstalled(installed, tags, sources, binaries)...)
-	} else {
-		if l.ShowInstalled {
-			versions = []string{"Installed"}
-			versions = append(versions, installed...)
-		}
-		if l.ShowNotInstalled {
-			versions = append(versions, "\nAvailable for Installation")
-			versions = append(
-				versions, l.getNonInstalled(installed, tags, sources, binaries)...)
-		}
-	}
+	versions["installed"] = append(versions["installed"], installed...)
+	versions["available"] = append(
+		versions["available"],
+		l.getNonInstalled(installed, tags, sources, binaries)...,
+	)
 
 	return l.display(versions)
 }
 
 // generates the output for the list command
-func (l *List) display(versions []string) (string, error) {
+func (l *List) display(versions map[string][]string) (string, error) {
+	output := []string{}
 	if l.DisplayAs == Text {
-		return strings.Join(versions, "\n"), nil
+		if l.ShowBoth || l.ShowInstalled {
+			output = append(output, Ok("Installed"))
+			output = append(output, versions["installed"]...)
+		}
+		if l.ShowBoth || l.ShowNotInstalled {
+			output = append(output, Ok("Available for Installation"))
+			output = append(output, versions["available"]...)
+		}
+		return strings.Join(output, "\n"), nil
 	}
 
 	if l.DisplayAs == Json {
 		jsonData := &BriefJSON{[]string{}, []string{}}
-		doneInstalled := false
-		for _, v := range versions {
-			if v != "Installed" {
-				if !doneInstalled {
-					if v == "\nAvailable for Installation" {
-						doneInstalled = true
-						continue
-					}
-					v := strings.TrimLeft(v, "    ")
-					jsonData.Installed = append(jsonData.Installed, v)
-				} else {
-					v := strings.TrimLeft(v, "    ")
-					jsonData.Available = append(jsonData.Available, v)
-				}
+		if l.ShowBoth || l.ShowInstalled {
+			for _, v := range versions["installed"] {
+				v := strings.TrimLeft(v, "    ")
+				jsonData.Installed = append(jsonData.Installed, v)
 			}
-
+		}
+		if l.ShowBoth || l.ShowNotInstalled {
+			for _, v := range versions["available"] {
+				v := strings.TrimLeft(v, "    ")
+				jsonData.Available = append(jsonData.Available, v)
+			}
 		}
 		data, err := json.Marshal(jsonData)
 		return string(data), err
