@@ -19,13 +19,13 @@
 
 # show activate command help
 function vengo_activate_help {
-    echo "Usage: vengo activate env_name [options]"
-    echo "if no arguments are passed, prints a list of available environments"
-    echo ""
-    echo "  --pre-activate=path         Path to script to be executed before the"
-    echo "                              environment is activated"
-    echo "  --post-activate=path        Path to script to be executed after the"
-    echo "                              has been activated"
-    echo "  -h, --help                  Display this message"
-    echo ""
+    echo "Usage: vengo activate env_name [options]
+if no arguments are passed, prints a list of available environments
+
+  --pre-activate=path         Path to script to be executed before the
+                              environment is activated
+  --post-activate=path        Path to script to be executed after the
+                              has been activated
+  -h, --help                  Display this message
+"
 }

@@ -19,23 +19,12 @@
 
 # usage: lsenvs
 function lsenvs {
-    # borrowed from virtualenvwrapper by Doug Hellmann
-    # https://pypi.python.org/pypi/virtualenvwrapper
-
-    # NOTE: DO NOT use ls or cd here because colorized versions spew control
-    #       characters into the output list.
-    # echo seems a little faster than find, even with -depth 3.
-    #
-    # 1. Look for environments by finding the activate scripts.
-    #    Use a subshell so we can suppress the message printed
-    #    by zsh if the glob pattern fails to match any files.
-    # 2. Strip the WORKON_HOME prefix from each name.
-    # 3. Strip the bindir/activate script suffix.
-    # 4. Format the output to show one name on a line.
-    # 5. Eliminate any lines with * on them because that means there
-    #    were no envs.
-    (cd "$VENGO_HOME" && echo */bin/activate) 2>/dev/null \
-        | command \sed "s|/bin/activate||g" \
-        | command \fmt -w 1 \
-        | (unset GREP_OPTIONS; command \egrep -v '^\*$') 2>/dev/null
+    echo "\n`Ok`VenGO Virtual Environments`Reset`"
+    (cd "$VENGO_HOME" && for i in `command ls */bin/activate`; do
+        echo "    $i `Ok`✔`Reset`" | sed 's|/bin/activate||g'
+    done && for i in *; do
+        if [ -d "$i" ] && if [ -e "$i/bin/activate" ] || \
+            echo "    $i `Fail`✖`Reset`";
+    done)
+    echo ""
 }
