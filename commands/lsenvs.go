@@ -100,20 +100,21 @@ func (e *EnvironmentsList) getEnvironments() ([]string, []string, error) {
 	}
 	available, invalid := []string{}, []string{}
 	for _, file := range files {
+		filename := path.Base(file)
 		stat, err := os.Stat(file)
 		if err != nil {
 			logger.Println("while getting list of environments:", err)
 			return nil, nil, err
 		}
-		if stat.IsDir() {
+		if stat.IsDir() && filename != "bin" && filename != "scripts" {
 			_, err := os.Open(filepath.Join(file, "bin", "activate"))
 			if err != nil {
 				if os.IsNotExist(err) || os.IsPermission(err) {
-					invalid = append(invalid, path.Base(file))
+					invalid = append(invalid, filename)
 				}
 				continue
 			}
-			available = append(available, path.Base(file))
+			available = append(available, filename)
 		}
 	}
 

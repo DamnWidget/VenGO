@@ -381,6 +381,22 @@ var _ = Describe("Commands", func() {
 						Expect(jsonData.Invalid[0]).To(Equal("MyInvalidEnv1"))
 						Expect(jsonData.Invalid[1]).To(Equal("MyInvalidEnv2"))
 					})
+
+					It("doesn't give false positives with 'bin' and 'scripts'", func() {
+						envsPath := cache.ExpandUser(filepath.Join("~", ".VenGO"))
+						Expect(os.MkdirAll(filepath.Join(envsPath, "bin"), 0755)).To(Succeed())
+						Expect(os.MkdirAll(filepath.Join(envsPath, "scripts"), 0755)).To(Succeed())
+
+						l := commands.NewEnvironmentsList()
+
+						Expect(l).ToNot(BeNil())
+						environments, err := l.Run()
+
+						Expect(err).ToNot(HaveOccurred())
+						envsSplit := strings.Split(environments, "\n")
+
+						Expect(len(envsSplit)).To(Equal(6))
+					})
 				})
 			})
 		})
