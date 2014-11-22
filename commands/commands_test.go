@@ -247,4 +247,142 @@ var _ = Describe("Commands", func() {
 			})
 		})
 	})
+
+	Describe("NewEnvironmentsList", func() {
+		It("Creates and return a configured environments list", func() {
+			l := commands.NewEnvironmentsList()
+
+			Expect(l).ToNot(BeNil())
+			Expect(l.DisplayAs).To(Equal(commands.Text))
+
+			displayJson := func(e *commands.EnvironmentsList) {
+				e.DisplayAs = commands.Json
+			}
+			l = commands.NewEnvironmentsList(displayJson)
+
+			Expect(l).ToNot(BeNil())
+			Expect(l.DisplayAs).To(Equal(commands.Json))
+		})
+	})
+
+	Describe("EnvironmentsList", func() {
+		Describe("Run", func() {
+
+			envs_path := cache.ExpandUser(filepath.Join("~", ".VenGO"))
+			BeforeEach(func() {
+				rename := filepath.Join(envs_path, "..", "Real.VenGO")
+				Expect(os.Rename(envs_path, rename)).To(Succeed())
+				Expect(os.MkdirAll(envs_path, 0755)).To(Succeed())
+			})
+
+			AfterEach(func() {
+				rename := filepath.Join(envs_path, "..", "Real.VenGO")
+				Expect(os.RemoveAll(envs_path)).To(Succeed())
+				Expect(os.Rename(rename, envs_path)).To(Succeed())
+			})
+
+			Context("With no available environments", func() {
+				Context("Using Text output", func() {
+					It("Should return just a title and no data", func() {
+						l := commands.NewEnvironmentsList()
+
+						Expect(l).ToNot(BeNil())
+						environments, err := l.Run()
+
+						Expect(err).ToNot(HaveOccurred())
+						Expect(environments).To(Equal(commands.Ok("Virtual Go Environments")))
+					})
+				})
+
+				Context("Using Json output", func() {
+					It("Should return an empty structure", func() {
+						jsonOutput := func(e *commands.EnvironmentsList) {
+							e.DisplayAs = commands.Json
+						}
+						l := commands.NewEnvironmentsList(jsonOutput)
+
+						Expect(l).ToNot(BeNil())
+						environments, err := l.Run()
+
+						Expect(err).ToNot(HaveOccurred())
+						jsonData := new(commands.EnvironmentsJSON)
+
+						Expect(json.Unmarshal([]byte(environments), jsonData)).To(Succeed())
+						Expect(jsonData.Available).To(Equal([]string{}))
+						Expect(jsonData.Invalid).To(Equal([]string{}))
+					})
+				})
+			})
+
+			Context("With available and invalid environments in place", func() {
+
+				BeforeEach(func() {
+					envsPath := cache.ExpandUser(filepath.Join("~", ".VenGO"))
+					Expect(os.MkdirAll(filepath.Join(envsPath, "MyEnv1", "bin"), 0755)).To(Succeed())
+					Expect(os.MkdirAll(filepath.Join(envsPath, "MyEnv2", "bin"), 0755)).To(Succeed())
+					Expect(os.MkdirAll(filepath.Join(envsPath, "MyEnv3", "bin"), 0755)).To(Succeed())
+					Expect(os.MkdirAll(filepath.Join(envsPath, "MyInvalidEnv1"), 0755)).To(Succeed())
+					Expect(os.MkdirAll(filepath.Join(envsPath, "MyInvalidEnv2"), 0755)).To(Succeed())
+
+					f, err := os.Create(filepath.Join(envsPath, "MyEnv1", "bin", "activate"))
+					Expect(err).ToNot(HaveOccurred())
+					f.Write([]byte(""))
+					f.Close()
+
+					f, err = os.Create(filepath.Join(envsPath, "MyEnv2", "bin", "activate"))
+					Expect(err).ToNot(HaveOccurred())
+					f.Write([]byte(""))
+					f.Close()
+
+					f, err = os.Create(filepath.Join(envsPath, "MyEnv3", "bin", "activate"))
+					Expect(err).ToNot(HaveOccurred())
+					f.Write([]byte(""))
+					f.Close()
+				})
+
+				Context("Using Text output", func() {
+					It("Should return a title and a list of available/invalid environments", func() {
+						l := commands.NewEnvironmentsList()
+
+						Expect(l).ToNot(BeNil())
+						environments, err := l.Run()
+
+						Expect(err).ToNot(HaveOccurred())
+						envsSplit := strings.Split(environments, "\n")
+
+						Expect(envsSplit[0]).To(Equal(commands.Ok("Virtual Go Environments")))
+						Expect(envsSplit[1]).To(Equal(fmt.Sprintf("    MyEnv1 %s", commands.Ok("✔"))))
+						Expect(envsSplit[2]).To(Equal(fmt.Sprintf("    MyEnv2 %s", commands.Ok("✔"))))
+						Expect(envsSplit[3]).To(Equal(fmt.Sprintf("    MyEnv3 %s", commands.Ok("✔"))))
+						Expect(envsSplit[4]).To(Equal(fmt.Sprintf("    MyInvalidEnv1 %s", commands.Fail("✖"))))
+						Expect(envsSplit[5]).To(Equal(fmt.Sprintf("    MyInvalidEnv2 %s", commands.Fail("✖"))))
+					})
+				})
+
+				Context("using Json output", func() {
+					It("Should return a Json structure with two lists with 3 and 2 elements", func() {
+						jsonOutput := func(e *commands.EnvironmentsList) {
+							e.DisplayAs = commands.Json
+						}
+						l := commands.NewEnvironmentsList(jsonOutput)
+
+						Expect(l).ToNot(BeNil())
+						environments, err := l.Run()
+
+						Expect(err).ToNot(HaveOccurred())
+						jsonData := new(commands.EnvironmentsJSON)
+
+						Expect(json.Unmarshal([]byte(environments), jsonData)).To(Succeed())
+						Expect(len(jsonData.Available)).To(Equal(3))
+						Expect(len(jsonData.Invalid)).To(Equal(2))
+						Expect(jsonData.Available[0]).To(Equal("MyEnv1"))
+						Expect(jsonData.Available[1]).To(Equal("MyEnv2"))
+						Expect(jsonData.Available[2]).To(Equal("MyEnv3"))
+						Expect(jsonData.Invalid[0]).To(Equal("MyInvalidEnv1"))
+						Expect(jsonData.Invalid[1]).To(Equal("MyInvalidEnv2"))
+					})
+				})
+			})
+		})
+	})
 })
