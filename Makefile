@@ -17,12 +17,27 @@
 
 # See LICENSE file for more details.
 
+RM = rm -Rf
+CREATE_DIR = -D
+INSTALL = install
+INSTALL_DATA = $(INSTALL) -m 644 -p
+TARGET = $(HOME)/.VenGO
+TARGET_BINDIR = $(TARGET)/bin/vengo
+SCRIPTS = commands
+VERSION = VERSION
+VENGO = bin/vengo
+BUILD = go build -v -x -o
+
 default: build
 
 .PHONY: default
 
 clean:
 	go clean
+	$(RM) $(SCRIPTS)/scripts/list
+	$(RM) $(SCRIPTS)/scripts/lsenv
+	$(RM) $(SCRIPTS)/scripts/install
+	$(RM) $(SCRIPTS)/scripts/uninstall
 
 test: cache_test env_test
 
@@ -38,7 +53,21 @@ commands_test:
 	cd commands && ginkgo -r --randomizeAllSpecs --failOnPending --randomizeSuites --trace --race
 .PHONY: commands_test
 
-build:
-	go build -v -x -o vengo ./application
+build: clean test
+	$(BUILD) commands/scripts/list ./applications/list
+	$(BUILD) commands/scripts/lsenvs ./applications/lsenvs
+	$(BUILD) commands/scripts/install ./applications/install
+	$(BUILD) commands/scripts/uninstall ./applications/uninstall
+	$(BUILD) commands/scripts/mkenv ./applications/mkenv
+	$(BUILD) commands/scripts/rmenv ./applications/rmenv
+
+install: build installdirs
+	$(INSTALL) $(CREATE_DIR) $(VENGO) $(TARGET_BINDIR)
+	$(INSTALL_DATA) $(VERSION) $(TARGET)/version
+.PHONY: install
+
+installdirs:
+	(cd $(SCRIPTS) && tar -cf - scripts) | (cd $(TARGET) && tar -xf -)
+.PHONY: installdirs
 
 .SILENT: clean build test cache_test env_test commands_test
