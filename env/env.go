@@ -29,7 +29,6 @@ import (
 	"text/template"
 
 	"github.com/DamnWidget/VenGO/cache"
-	"github.com/DamnWidget/VenGO/logger"
 )
 
 const environTemplate = "tpl/activate"
@@ -64,13 +63,13 @@ func (e *Environment) Generate() error {
 	defer file.Close()
 	activateTpl, err := ioutil.ReadFile(environTemplate)
 	if err != nil {
-		logger.Println("while reading activate script template file:", err)
+		fmt.Println("while reading activate script template file:", err)
 		return err
 	}
 	tpl := template.Must(template.New("environment").Parse(string(activateTpl)))
 	err = tpl.Execute(file, e)
 	if err != nil {
-		logger.Println("while generating environment template:", err)
+		fmt.Println("while generating environment template:", err)
 		return err
 	}
 
@@ -103,8 +102,8 @@ func (e *Environment) createFile(filename string) (*os.File, error) {
 // install the given version into the environment creating a Symlink to it
 func (e *Environment) Install(ver string) error {
 	if !cache.AlreadyCompiled(ver) {
-		if err := cache.Compile(ver); err != nil {
-			logger.Println("while installing:", err)
+		if err := cache.Compile(ver, false); err != nil {
+			fmt.Println("while installing:", err)
 			return err
 		}
 	}
@@ -114,7 +113,7 @@ func (e *Environment) Install(ver string) error {
 		path = filepath.Join(cache.CacheDirectory(), fmt.Sprintf("go%s", ver))
 	}
 	if err := os.Symlink(path, filepath.Join(e.VenGO_PATH, "lib")); err != nil {
-		logger.Println("while creating symlink:", err)
+		fmt.Println("while creating symlink:", err)
 		return err
 	}
 

@@ -3,7 +3,6 @@ package cache_test
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -28,7 +27,7 @@ func runningOnTravis() bool {
 var _ = Describe("Cache", func() {
 
 	// disable log output
-	log.SetOutput(ioutil.Discard)
+	cache.Output = ioutil.Discard
 
 	Describe("ExpandUser returns valid path depending on platform", func() {
 		var re *regexp.Regexp
@@ -294,7 +293,7 @@ var _ = Describe("Cache", func() {
 			Describe("Compile works as expected", func() {
 				Context("Giving a non existent version", func() {
 					It("Shuld return an error", func() {
-						err := cache.Compile("1.0")
+						err := cache.Compile("1.0", false)
 						Expect(err).To(HaveOccurred())
 						Expect(os.IsNotExist(err)).To(BeTrue())
 					})
@@ -305,7 +304,7 @@ var _ = Describe("Cache", func() {
 						err := cache.CacheDonwloadMercurial("1.3.3")
 
 						Expect(err).ToNot(HaveOccurred())
-						Expect(cache.Compile("1.3.3")).To(Succeed())
+						Expect(cache.Compile("1.3.3", false)).To(Succeed())
 					})
 				})
 			})

@@ -30,12 +30,7 @@ import (
 	"strings"
 
 	"github.com/DamnWidget/VenGO/cache"
-	"github.com/DamnWidget/VenGO/logger"
-)
-
-const (
-	Text = iota
-	Json
+	"github.com/DamnWidget/VenGO/utils"
 )
 
 // json brief output structure
@@ -78,7 +73,7 @@ func (l *List) Run() (string, error) {
 	}
 	installed, err := l.getInstalled(tags, sources, binaries)
 	if err != nil {
-		logger.Println("while running List command:", err)
+		fmt.Println("while running List command:", err)
 		return "error while running the command", err
 	}
 	versions["installed"] = append(versions["installed"], installed...)
@@ -95,13 +90,13 @@ func (l *List) display(versions map[string][]string) (string, error) {
 	output := []string{}
 	if l.DisplayAs == Text {
 		if l.ShowBoth || l.ShowInstalled {
-			output = append(output, Ok("Installed"))
+			output = append(output, utils.Ok("Installed"))
 			for _, v := range versions["installed"] {
-				output = append(output, fmt.Sprintf("%v %s", v, Ok("✔")))
+				output = append(output, fmt.Sprintf("%s %s", v, utils.Ok("✔")))
 			}
 		}
 		if l.ShowBoth || l.ShowNotInstalled {
-			output = append(output, Ok("Available for Installation"))
+			output = append(output, utils.Ok("Available for Installation"))
 			output = append(output, versions["available"]...)
 		}
 		return strings.Join(output, "\n"), nil
@@ -132,7 +127,7 @@ func (l *List) display(versions map[string][]string) (string, error) {
 func (l *List) getInstalled(tags, sources, binaries []string) ([]string, error) {
 	files, err := filepath.Glob(filepath.Join(cache.CacheDirectory(), "*"))
 	if err != nil {
-		logger.Println("while getting installed versions:", err)
+		fmt.Println("while getting installed versions:", err)
 		return nil, err
 	}
 	versions := []string{}
@@ -141,7 +136,7 @@ func (l *List) getInstalled(tags, sources, binaries []string) ([]string, error) 
 		if filename != "mercurial" && filename != "logs" {
 			stat, err := os.Stat(file)
 			if err != nil {
-				logger.Println("while getting installed versions:", err)
+				fmt.Println("while getting installed versions:", err)
 				return nil, err
 			}
 			if stat.IsDir() {

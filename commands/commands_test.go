@@ -3,15 +3,20 @@ package commands_test
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/DamnWidget/VenGO/cache"
 	"github.com/DamnWidget/VenGO/commands"
+	"github.com/DamnWidget/VenGO/utils"
 )
 
 var _ = Describe("Commands", func() {
+
+	// disable log output
+	cache.Output = ioutil.Discard
 
 	Describe("NewList", func() {
 		It("Create and return a configured list", func() {
@@ -58,8 +63,8 @@ var _ = Describe("Commands", func() {
 
 						Expect(err).ToNot(HaveOccurred())
 						splitVers := strings.Split(versions, "\n")
-						Expect(splitVers[0]).To(Equal(commands.Ok("Installed")))
-						Expect(splitVers[1]).To(Equal(commands.Ok("Available for Installation")))
+						Expect(splitVers[0]).To(Equal(utils.Ok("Installed")))
+						Expect(splitVers[1]).To(Equal(utils.Ok("Available for Installation")))
 					})
 
 					It("Should return an empty installed and full non installed lists in Json format", func() {
@@ -93,7 +98,7 @@ var _ = Describe("Commands", func() {
 						versions, err := l.Run()
 
 						Expect(err).ToNot(HaveOccurred())
-						Expect(strings.HasPrefix(versions, commands.Ok("Available for Installation")))
+						Expect(strings.HasPrefix(versions, utils.Ok("Available for Installation")))
 					})
 
 					It("Should return an empty installed list in Json format", func() {
@@ -127,7 +132,7 @@ var _ = Describe("Commands", func() {
 						versions, err := l.Run()
 
 						Expect(err).ToNot(HaveOccurred())
-						Expect(versions).To(Equal(commands.Ok("Installed")))
+						Expect(versions).To(Equal(utils.Ok("Installed")))
 					})
 
 					It("Should return an empty installed list in Json format", func() {
@@ -174,12 +179,12 @@ var _ = Describe("Commands", func() {
 
 						Expect(err).ToNot(HaveOccurred())
 						splitVers := strings.Split(versions, "\n")
-						Expect(splitVers[0]).To(Equal(commands.Ok("Installed")))
-						Expect(splitVers[1]).To(Equal(fmt.Sprintf("    1.3.3 %s", commands.Ok("✔"))))
-						Expect(splitVers[2]).To(Equal(fmt.Sprintf("    go1 %s", commands.Ok("✔"))))
-						Expect(splitVers[3]).To(Equal(fmt.Sprintf("    go1.1 %s", commands.Ok("✔"))))
-						Expect(splitVers[4]).To(Equal(fmt.Sprintf("    go1.2.1 %s", commands.Ok("✔"))))
-						Expect(splitVers[5]).To(Equal(commands.Ok("Available for Installation")))
+						Expect(splitVers[0]).To(Equal(utils.Ok("Installed")))
+						Expect(splitVers[1]).To(Equal(fmt.Sprintf("    1.3.3 %s", utils.Ok("✔"))))
+						Expect(splitVers[2]).To(Equal(fmt.Sprintf("    go1 %s", utils.Ok("✔"))))
+						Expect(splitVers[3]).To(Equal(fmt.Sprintf("    go1.1 %s", utils.Ok("✔"))))
+						Expect(splitVers[4]).To(Equal(fmt.Sprintf("    go1.2.1 %s", utils.Ok("✔"))))
+						Expect(splitVers[5]).To(Equal(utils.Ok("Available for Installation")))
 						Ω(len(splitVers)).Should(BeNumerically(">", 100))
 					})
 
@@ -216,11 +221,11 @@ var _ = Describe("Commands", func() {
 
 						Expect(err).ToNot(HaveOccurred())
 						splitVers := strings.Split(versions, "\n")
-						Expect(splitVers[0]).To(Equal(commands.Ok("Installed")))
-						Expect(splitVers[1]).To(Equal(fmt.Sprintf("    1.3.3 %s", commands.Ok("✔"))))
-						Expect(splitVers[2]).To(Equal(fmt.Sprintf("    go1 %s", commands.Ok("✔"))))
-						Expect(splitVers[3]).To(Equal(fmt.Sprintf("    go1.1 %s", commands.Ok("✔"))))
-						Expect(splitVers[4]).To(Equal(fmt.Sprintf("    go1.2.1 %s", commands.Ok("✔"))))
+						Expect(splitVers[0]).To(Equal(utils.Ok("Installed")))
+						Expect(splitVers[1]).To(Equal(fmt.Sprintf("    1.3.3 %s", utils.Ok("✔"))))
+						Expect(splitVers[2]).To(Equal(fmt.Sprintf("    go1 %s", utils.Ok("✔"))))
+						Expect(splitVers[3]).To(Equal(fmt.Sprintf("    go1.1 %s", utils.Ok("✔"))))
+						Expect(splitVers[4]).To(Equal(fmt.Sprintf("    go1.2.1 %s", utils.Ok("✔"))))
 					})
 
 					It("Should return a 4 elements list in Json format", func() {
@@ -290,7 +295,7 @@ var _ = Describe("Commands", func() {
 						environments, err := l.Run()
 
 						Expect(err).ToNot(HaveOccurred())
-						Expect(environments).To(Equal(commands.Ok("Virtual Go Environments")))
+						Expect(environments).To(Equal(utils.Ok("Virtual Go Environments")))
 					})
 				})
 
@@ -350,12 +355,12 @@ var _ = Describe("Commands", func() {
 						Expect(err).ToNot(HaveOccurred())
 						envsSplit := strings.Split(environments, "\n")
 
-						Expect(envsSplit[0]).To(Equal(commands.Ok("Virtual Go Environments")))
-						Expect(envsSplit[1]).To(Equal(fmt.Sprintf("    MyEnv1 %s", commands.Ok("✔"))))
-						Expect(envsSplit[2]).To(Equal(fmt.Sprintf("    MyEnv2 %s", commands.Ok("✔"))))
-						Expect(envsSplit[3]).To(Equal(fmt.Sprintf("    MyEnv3 %s", commands.Ok("✔"))))
-						Expect(envsSplit[4]).To(Equal(fmt.Sprintf("    MyInvalidEnv1 %s", commands.Fail("✖"))))
-						Expect(envsSplit[5]).To(Equal(fmt.Sprintf("    MyInvalidEnv2 %s", commands.Fail("✖"))))
+						Expect(envsSplit[0]).To(Equal(utils.Ok("Virtual Go Environments")))
+						Expect(envsSplit[1]).To(Equal(fmt.Sprintf("    MyEnv1 %s", utils.Ok("✔"))))
+						Expect(envsSplit[2]).To(Equal(fmt.Sprintf("    MyEnv2 %s", utils.Ok("✔"))))
+						Expect(envsSplit[3]).To(Equal(fmt.Sprintf("    MyEnv3 %s", utils.Ok("✔"))))
+						Expect(envsSplit[4]).To(Equal(fmt.Sprintf("    MyInvalidEnv1 %s", utils.Fail("✖"))))
+						Expect(envsSplit[5]).To(Equal(fmt.Sprintf("    MyInvalidEnv2 %s", utils.Fail("✖"))))
 					})
 				})
 
@@ -398,6 +403,51 @@ var _ = Describe("Commands", func() {
 						Expect(len(envsSplit)).To(Equal(6))
 					})
 				})
+			})
+		})
+	})
+
+	Describe("NewInstall", func() {
+		It("Creates and return back a configured Install command", func() {
+			i := commands.NewInstall()
+
+			Expect(i).ToNot(BeNil())
+			Expect(i.Force).To(BeFalse())
+			Expect(i.Source).To(Equal(commands.Mercurial))
+
+			f := func(i *commands.Install) {
+				i.Force = true
+			}
+			s := func(i *commands.Install) {
+				i.Source = commands.Binary
+			}
+			v := func(i *commands.Install) {
+				i.Version = "go1.3.3"
+			}
+			i = commands.NewInstall(f, s, v)
+
+			Expect(i).ToNot(BeNil())
+			Expect(i.Force).To(BeTrue())
+			Expect(i.Source).To(Equal(commands.Binary))
+			Expect(i.Version).To(Equal("go1.3.3"))
+		})
+	})
+
+	Describe("Install", func() {
+
+		// Note, Install feature is tested in cache_test.go
+		Context("Passing a non valid version", func() {
+			It("Should return back a descriptive error", func() {
+				v := func(i *commands.Install) {
+					i.Version = "go20.1"
+				}
+				i := commands.NewInstall(v)
+
+				Expect(i).ToNot(BeNil())
+				out, err := i.Run()
+				Expect(err).To(HaveOccurred())
+				Expect(out).To(Equal("error while installing from mercurial"))
+				Expect(err).To(Equal(fmt.Errorf("go20.1 doesn't seems to be a valid Go release\n")))
 			})
 		})
 	})

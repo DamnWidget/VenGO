@@ -24,12 +24,14 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
-	"github.com/DamnWidget/VenGO/logger"
+	"github.com/DamnWidget/VenGO/utils"
 	"github.com/mcuadros/go-version"
 )
 
@@ -45,15 +47,24 @@ func AlreadyCompiled(ver string) bool {
 }
 
 // compile a given version of go in the cache
-func Compile(ver string) error {
+func Compile(ver string, verbose bool) error {
+	fmt.Print("Compiling... ")
+	if verbose {
+		fmt.Print("\n")
+	}
 	currdir, _ := os.Getwd()
 	prefixed := false
 	err := os.Chdir(filepath.Join(CacheDirectory(), ver, "go", "src"))
 	if err != nil {
-		ver = fmt.Sprintf("go%s", ver)
+		if !strings.HasPrefix(ver, "go") {
+			ver = fmt.Sprintf("go%s", ver)
+		}
 		prefixed = true
 		if err := os.Chdir(
 			filepath.Join(CacheDirectory(), ver, "src")); err != nil {
+			if !verbose {
+				fmt.Println(utils.Fail("✖"))
+			}
 			return err
 		}
 	}
@@ -65,24 +76,57 @@ func Compile(ver string) error {
 	}
 	p := exec.Command(cmd)
 	out, err := p.StdoutPipe()
+	outErr, err := p.StderrPipe()
 	if err != nil {
 		return err
 	}
 	rd := bufio.NewReader(out)
+	erd := bufio.NewReader(outErr)
 	if err := p.Start(); err != nil {
+		if !verbose {
+			fmt.Println(utils.Fail("✖"))
+		}
 		return err
 	}
 
 	// read the command output and update the terminal
-	for {
-		str, err := rd.ReadString('\n')
-		if err != nil {
-			if err != io.EOF {
-				logger.Fatal(err)
+	go func() {
+		for {
+			str, err := rd.ReadString('\n')
+			if err != nil {
+				if err != io.EOF {
+					if !verbose {
+						fmt.Println(utils.Fail("✖"))
+					}
+					log.Fatal(err)
+				}
+				break
 			}
-			break
+			if verbose {
+				fmt.Printf("%s", str)
+			}
 		}
-		logger.Printf("%s", str)
+	}()
+
+	// read the command error output and update the terminal
+	go func() {
+		for {
+			str, err := erd.ReadString('\n')
+			if err != nil {
+				break
+			}
+			if verbose {
+				fmt.Printf("%s", str)
+			}
+		}
+	}()
+
+	// wait for the command
+	if err := p.Wait(); err != nil {
+		if !verbose {
+			fmt.Println(utils.Fail("✖"))
+		}
+		fmt.Println(err)
 	}
 
 	goBin := filepath.Join(CacheDirectory(), ver, "go", "bin", "go")
@@ -90,21 +134,28 @@ func Compile(ver string) error {
 		goBin = filepath.Join(CacheDirectory(), ver, "bin", "go")
 	}
 	if _, err := os.Stat(goBin); err != nil {
-		logger.Println(err)
-		return fmt.Errorf("Go %s wasn't compiled properly!", ver)
+		if !verbose {
+			fmt.Println(utils.Fail("✖"))
+		}
+		fmt.Println(err)
+		return fmt.Errorf("Go %s wasn't compiled properly! %v", ver, err)
+	}
+	if !verbose {
+		fmt.Println(utils.Ok("✔"))
 	}
 
 	return nil
 }
 
 // Download an specific version of Golang source code
-func CacheDownload(ver string) error {
+func CacheDownload(ver string, f ...bool) error {
 	expected_sha1, err := Checksum(ver)
 	if err != nil {
 		return err
 	}
+	force := (len(f) != 0 && f[0] == true)
 
-	if !Exists(ver) {
+	if !Exists(ver) || force {
 		url := fmt.Sprintf(
 			"https://storage.googleapis.com/golang/go%s.src.tar.gz", ver)
 		if version.Compare(version.Normalize(ver), "1.2.2", "<") {

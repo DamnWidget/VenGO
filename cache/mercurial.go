@@ -32,7 +32,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/DamnWidget/VenGO/logger"
+	"github.com/DamnWidget/VenGO/utils"
 )
 
 const REPO = "https://go.googlecode.com/hg/"
@@ -47,11 +47,11 @@ func Tags() []string {
 }
 
 // Donwload mercurial repository and clone the given version
-func CacheDonwloadMercurial(ver string, forceDownload ...bool) error {
+func CacheDonwloadMercurial(ver string, f ...bool) error {
 	logFile = openMercurialLogs()
 	availableVersions := getVersionTags()
 	if availableVersions == nil {
-		logger.Fatal("Fatal error, exiting...")
+		log.Fatal("Fatal error, exiting...")
 	}
 	ver = normalizeVersion(ver)
 
@@ -67,11 +67,11 @@ func CacheDonwloadMercurial(ver string, forceDownload ...bool) error {
 	}
 
 	force := false
-	if len(forceDownload) != 0 && forceDownload[0] {
+	if len(f) != 0 && f[0] {
 		force = true
 	}
-	if exists, err := SourceExists(ver); err != nil {
-		logger.Fatal(err)
+	if exists, err := SourceExists(ver); !force && err != nil {
+		log.Fatal(err)
 	} else if !exists || force {
 		if err := copySource(ver); err != nil {
 			return err
@@ -96,11 +96,13 @@ func normalizeVersion(ver string) string {
 }
 
 func checkSource(tag string) error {
-	logger.Printf("Checking %s...\n", tag)
+	fmt.Fprintf(Output, "Checking %s... ", tag)
 	out, err := exec.Command("hg", "pull", "-R", TARGET).CombinedOutput()
 	if err != nil {
+		fmt.Fprintln(Output, utils.Fail("✖"))
 		return err
 	}
+	fmt.Fprintln(Output, utils.Ok("✔"))
 	logOutput(out)
 	return nil
 }
@@ -110,29 +112,32 @@ func cloneSource() error {
 		return nil
 	}
 
-	logger.Println("Downloading Go source from mercurial...")
+	fmt.Fprintln(Output, "Downloading Go source from mercurial...")
 	// check if mercurial command line is installed
 	if _, err := exec.LookPath("hg"); err != nil {
-		logger.Fatal("Mercurial is not installed on your machine.")
+		log.Fatal("Mercurial is not installed on your machine.")
 	}
 	out, err := exec.Command("hg", "clone", REPO, TARGET).CombinedOutput()
 	if err != nil {
+		fmt.Fprintln(Output, utils.Fail("✖"))
 		return err
 	}
+	fmt.Fprintln(Output, utils.Ok("✔"))
 	logOutput(out)
 	return nil
 }
 
 func copySource(ver string) error {
-	logger.Println("Copying source...")
+	fmt.Fprint(Output, "Copying source... ")
 	destination := filepath.Join(CacheDirectory(), ver)
 	os.RemoveAll(destination)
 	out, err := exec.Command(
 		"hg", "clone", "-u", ver, TARGET, destination).CombinedOutput()
 	if err != nil {
-		logger.Println(err)
+		fmt.Fprintln(Output, utils.Fail("✖"))
 		return err
 	}
+	fmt.Fprintln(Output, utils.Ok("✔"))
 	logOutput(out)
 	return nil
 }
@@ -142,7 +147,12 @@ func lookupVersion(ver string, availableVersions []string) (index int) {
 		return -1
 	}
 
-	return sort.SearchStrings(availableVersions, ver)
+	for i, v := range availableVersions {
+		if v == ver {
+			return i
+		}
+	}
+	return -1
 }
 
 func getVersionTags() (tags []string) {
@@ -154,8 +164,8 @@ func getVersionTags() (tags []string) {
 
 	if resp.StatusCode != 200 {
 		if resp.StatusCode == 400 {
-			logger.Fatal("Cant't get go versions list from Google servers")
-			logger.Println(fmt.Errorf("%s", resp.Status))
+			fmt.Fprintln(Output, fmt.Errorf("%s", resp.Status))
+			log.Fatal("Cant't get go versions list from Google servers")
 		}
 		return nil
 	}
@@ -164,7 +174,7 @@ func getVersionTags() (tags []string) {
 	buf := new(bytes.Buffer)
 	_, err = io.Copy(buf, resp.Body)
 	if err != nil {
-		logger.Println(err)
+		fmt.Fprintln(Output, err)
 		return nil
 	}
 
@@ -196,8 +206,8 @@ func openMercurialLogs() *os.File {
 		filepath.Join(logsDir, "mercurial-go.log"), openFlags, 0644,
 	)
 	if err != nil {
-		logger.Printf("error: can't open log file to write: %s\n", err)
-		logger.Println("this is a non fatal error, ignoring...")
+		fmt.Fprintf(Output, "error: can't open log file to write: %s\n", err)
+		fmt.Fprintln(Output, "this is a non fatal error, ignoring...")
 		return nil
 	}
 	return file

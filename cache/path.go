@@ -34,8 +34,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/DamnWidget/VenGO/logger"
+	"github.com/DamnWidget/VenGO/utils"
 )
+
+var Output io.Writer = os.Stdout
 
 var VenGO_PATH = filepath.Join(ExpandUser("~"), ".VenGO")
 
@@ -43,7 +45,7 @@ var VenGO_PATH = filepath.Join(ExpandUser("~"), ".VenGO")
 func ExpandUser(path string) string {
 	u, err := user.Current()
 	if err != nil {
-		log.Println("Can't get current user:", err)
+		fmt.Fprintln(Output, "Can't get current user:", err)
 		return path
 	}
 	return strings.Replace(path, "~", u.HomeDir, -1)
@@ -70,12 +72,14 @@ func downloadAndExtract(ver, url, expected_sha1 string) error {
 	}
 	defer resp.Body.Close()
 
-	logger.Printf("downloading Go%s from %s\n", ver, url)
+	fmt.Fprintf(Output, "downloading Go%s from %s ", ver, url)
 	buf := new(bytes.Buffer)
 	size, err := io.Copy(buf, resp.Body)
 	if err != nil {
+		fmt.Fprintln(Output, utils.Fail("✖"))
 		return err
 	}
+	fmt.Fprintln(Output, utils.Ok("✔"))
 
 	pkg_sha1 := fmt.Sprintf("%x", sha1.Sum(buf.Bytes()))
 	if pkg_sha1 != expected_sha1 {
@@ -84,11 +88,12 @@ func downloadAndExtract(ver, url, expected_sha1 string) error {
 			expected_sha1, pkg_sha1,
 		)
 	}
-	logger.Printf("%d bytes donwloaded... decompresssing...\n", size)
+	fmt.Fprintf(Output, "%d bytes donwloaded... decompresssing... ", size)
 	prefix := filepath.Join(CacheDirectory(), ver)
 	extractTar(prefix, readGzipFile(buf))
 	buf.Reset()
 	buf = nil
+	fmt.Fprintln(Output, utils.Ok("✔"))
 
 	return nil
 }
@@ -97,15 +102,15 @@ func downloadAndExtract(ver, url, expected_sha1 string) error {
 func readGzipFile(data *bytes.Buffer) *bytes.Buffer {
 	reader, err := gzip.NewReader(data)
 	if err != nil {
-		logger.Println("Fatal error reading gzip file contents...")
-		logger.Fatal(err)
+		fmt.Fprintln(Output, "Fatal error reading gzip file contents...")
+		log.Fatal(err)
 	}
 	defer reader.Close()
 	gzipBuf := new(bytes.Buffer)
 	if _, err := io.Copy(gzipBuf, reader); err != nil {
-		logger.Println(
+		fmt.Fprintln(Output,
 			"Fatal error while reading gzip file contents into the buffer")
-		logger.Fatal(err)
+		log.Fatal(err)
 	}
 
 	return gzipBuf
@@ -115,13 +120,13 @@ func readGzipFile(data *bytes.Buffer) *bytes.Buffer {
 func extractTar(prefix string, data *bytes.Buffer) {
 	tr := tar.NewReader(data)
 	if err := os.MkdirAll(filepath.Join(prefix, "go"), 0766); err != nil {
-		logger.Fatal(err)
+		log.Fatal(err)
 	}
 	for {
 		hdr, err := tr.Next()
 		if err != nil {
 			if err != io.EOF {
-				logger.Fatal(err)
+				log.Fatal(err)
 			}
 			break
 		}
@@ -129,16 +134,16 @@ func extractTar(prefix string, data *bytes.Buffer) {
 		if fi.IsDir() {
 			err := os.MkdirAll(filepath.Join(prefix, hdr.Name), 0766)
 			if err != nil && os.IsNotExist(err) {
-				logger.Fatal(err)
+				log.Fatal(err)
 			}
 		} else {
 			tw, err := os.OpenFile(
 				filepath.Join(prefix, hdr.Name), os.O_RDWR|os.O_CREATE|os.O_TRUNC, fi.Mode())
 			if err != nil && !os.IsExist(err) {
-				logger.Fatal(err)
+				log.Fatal(err)
 			}
 			if _, err := io.Copy(tw, tr); err != nil {
-				logger.Fatal(err)
+				log.Fatal(err)
 			}
 			tw.Close()
 		}

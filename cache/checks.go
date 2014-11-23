@@ -23,8 +23,6 @@ package cache
 import (
 	"os"
 	"path/filepath"
-
-	"github.com/DamnWidget/VenGO/logger"
 )
 
 func MercurialExists() bool {
@@ -43,8 +41,6 @@ func SourceExists(ver string) (bool, error) {
 			return false, err
 		}
 	} else {
-		logger.Printf("version %s is downloaded already, if you want to ", ver)
-		logger.Print("download it again, use -force-donwload ")
 		return true, nil
 	}
 

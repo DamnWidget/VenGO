@@ -29,7 +29,7 @@ import (
 )
 
 // Download an specific version of Golang binary files
-func CacheDownloadBinary(ver string) error {
+func CacheDownloadBinary(ver string, f ...bool) error {
 	numeric_ver := ver
 	ver = GetBinaryVersion(ver)
 	expected_sha1, err := Checksum(ver)
@@ -37,7 +37,7 @@ func CacheDownloadBinary(ver string) error {
 		return err
 	}
 
-	if !Exists(ver) {
+	if !Exists(ver) || (len(f) > 0 && f[0]) {
 		url := fmt.Sprintf(
 			"https://storage.googleapis.com/golang/go%s.tar.gz", ver)
 		if version.Compare(version.Normalize(numeric_ver), "1.2.2", "<") {

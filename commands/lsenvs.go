@@ -29,7 +29,7 @@ import (
 	"strings"
 
 	"github.com/DamnWidget/VenGO/cache"
-	"github.com/DamnWidget/VenGO/logger"
+	"github.com/DamnWidget/VenGO/utils"
 )
 
 type EnvironmentsJSON struct {
@@ -58,7 +58,7 @@ func NewEnvironmentsList(options ...func(*EnvironmentsList)) *EnvironmentsList {
 func (e *EnvironmentsList) Run() (string, error) {
 	available, invalid, err := e.getEnvironments()
 	if err != nil {
-		logger.Println("while running EnvironmentsList command:", err)
+		fmt.Println("while running EnvironmentsList command:", err)
 		return "error while running the command", err
 	}
 
@@ -71,12 +71,13 @@ func (e *EnvironmentsList) display(
 
 	output := []string{}
 	if e.DisplayAs == Text {
-		output = append(output, Ok("Virtual Go Environments"))
+		output = append(output, utils.Ok("Virtual Go Environments"))
 		for _, v := range available {
-			output = append(output, fmt.Sprintf("    %s %s", v, Ok("✔")))
+			output = append(output, fmt.Sprintf("    %s %s", v, utils.Ok("✔")))
 		}
 		for _, v := range invalid {
-			output = append(output, fmt.Sprintf("    %s %s", v, Fail("✖")))
+			output = append(
+				output, fmt.Sprintf("    %s %s", v, utils.Fail("✖")))
 		}
 
 		return strings.Join(output, "\n"), nil
@@ -95,7 +96,7 @@ func (e *EnvironmentsList) getEnvironments() ([]string, []string, error) {
 	envs_path := filepath.Join("~", ".VenGO", "*")
 	files, err := filepath.Glob(cache.ExpandUser(envs_path))
 	if err != nil {
-		logger.Println("while getting list of environments:", err)
+		fmt.Println("while getting list of environments:", err)
 		return nil, nil, err
 	}
 	available, invalid := []string{}, []string{}
@@ -103,7 +104,7 @@ func (e *EnvironmentsList) getEnvironments() ([]string, []string, error) {
 		filename := path.Base(file)
 		stat, err := os.Stat(file)
 		if err != nil {
-			logger.Println("while getting list of environments:", err)
+			fmt.Println("while getting list of environments:", err)
 			return nil, nil, err
 		}
 		if stat.IsDir() && filename != "bin" && filename != "scripts" {
