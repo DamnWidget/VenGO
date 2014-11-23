@@ -115,6 +115,18 @@ func (e *EnvironmentsList) getEnvironments() ([]string, []string, error) {
 				}
 				continue
 			}
+			if r, err := os.Readlink(filepath.Join(file, "lib")); err != nil {
+				if os.IsNotExist(err) || os.IsPermission(err) {
+					invalid = append(invalid, filename)
+				}
+				continue
+			} else if _, err := os.Stat(r); err != nil {
+				if os.IsNotExist(err) || os.IsPermission(err) {
+					invalid = append(invalid, filename)
+				}
+				continue
+			}
+
 			available = append(available, filename)
 		}
 	}
