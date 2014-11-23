@@ -112,7 +112,7 @@ func cloneSource() error {
 		return nil
 	}
 
-	fmt.Fprintln(Output, "Downloading Go source from mercurial...")
+	fmt.Fprint(Output, "Downloading Go source from mercurial... ")
 	// check if mercurial command line is installed
 	if _, err := exec.LookPath("hg"); err != nil {
 		log.Fatal("Mercurial is not installed on your machine.")

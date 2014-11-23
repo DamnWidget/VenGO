@@ -25,6 +25,73 @@ fi
 
 if [ -z "$VENGO_HOME" ]; then
     echo "VenGO: VENGO_HOME is not set. Shutdown now...
-  suggestion: add to your .bashrc or .profile '. ~/.VenGO/scripts/VenGO.sh'" >&2
+  suggestion: add '. ~/.VenGO/scripts/VenGO.sh' to your .bashrc or .profile" >&2
     exit 1
+fi
+
+# include libraries
+for include in $VENGO_HOME/scripts/includes/*; do
+    if [ -f "$include" ]; then
+        . "$include"
+    fi
+done
+
+# include commands
+for script in $VENGO_HOME/scripts/*; do
+    if [ -f "$script" ] && [ ! -x "$script" ]; then
+        . "$script"
+    fi
+done
+
+command=$1
+# handle VenGO uninstall command
+if [ "$command" == "vengo-uninstall" ]; then
+    echo -ne "this will uninstall VenGO and `Fail`remove`Reset` all your Go "
+    echo -n "virtual environments "
+
+    while true; do
+        #statements
+        read -p "are you sure? [y/n] " answer
+        case $answer in
+            [Yy]*)
+                vengo_uninstall
+                break
+            ;;
+            [Nn]*)
+                exit 0
+            ;;
+            *)
+                echo "Please answer yes or no."
+            ;;
+        esac
+    done
+fi
+
+# handle version command
+if [ "$command" == "version" ]; then
+    version=$(<$VENGO_HOME/version)
+    echo -e "VenGO, Virtual Golang Environment builder `Ok`v$version`Reset`"
+    exit 0
+fi
+
+# handle the given command with the right command handler
+if [ -f "$VENGO_HOME/scripts/$command" ]; then
+    shift
+    $command "$@"
+elif [ -n "$command" ]; then
+    echo "Command '$command' doesn't look like a valid VenGO command..."
+    suggest "execute 'vengo' with no arguments to get a list of valid commands"
+else
+    echo -e "Usage: vengo [command]
+
+Where command is one of the list below:
+
+  `Ok`install`Reset`            Installs a new Go version
+  `Ok`uninstall`Reset`          Uninstall an installed Go version
+  `Ok`list`Reset`               List installed and available Go versions
+  `Ok`lsenvs`Reset`             List available Virtual Go Environments
+  `Ok`mkenv`Reset`              Create a new Virtual Go Environment
+  `Ok`rmenv`Reset`              Remove a Virtual Go Environment
+  `Ok`vengo-uninstall`Reset`    Uninstall VenGO and remove all the Virtual Go Environments
+"
 fi
