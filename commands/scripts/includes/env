@@ -22,8 +22,23 @@ function check_environment_exixtance {
     environment="$1"
     if [ ! -d "$VENGO_HOME/$environment" ]; then
         echo "VenGO: Environment '$environment' doesn't exists." >&2
-        echo "  suggestion: try to create it with 'vengo create $environment -g <go_version>'" >&2
+        suggest "try to create it with 'vengo create $environment -g <go_version>'" >&2
         return 1
     fi
     return 0
 }
+
+
+# var main = {
+#         info: chalk.blue('ℹ'),
+#         success: chalk.green('✔'),
+#         warning: chalk.yellow('⚠'),
+#         error: chalk.red('✖')
+# };
+
+# var win = {
+#         info: chalk.blue('i'),
+#         success: chalk.green('√'),
+#         warning: chalk.yellow('‼'),
+#         error: chalk.red('×')
+# };

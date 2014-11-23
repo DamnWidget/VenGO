@@ -17,14 +17,7 @@
 
 # See LICENSE file for more details.
 
-# show activate command help
-function vengo_activate_help {
-    echo "Usage: vengo activate env_name [options]
-if no arguments are passed, prints a list of available environments
-
-   --pre-activate=path         Path to script to be executed before the environment is activated
-   --post-activate=path        Path to script to be executed after the has been activated
-
-   -h, --help                  Display this message
-"
+# wrapper around the echo command to make suggestions
+function suggest {
+    echo -e "  `Ok`suggestion`Reset`: $1"
 }

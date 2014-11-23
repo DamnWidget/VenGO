@@ -18,9 +18,9 @@
 # See LICENSE file for more details.
 
 # ANSI color codes
-vengo_green="\0x1b[32m"
-vengo_red="\0x1b[31m"
-vengo_reset="\0x1b[0m"
+vengo_green="\033[32m"
+vengo_red="\033[31m"
+vengo_reset="\033[0m"
 
 function Ok {
     echo $vengo_green
