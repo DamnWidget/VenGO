@@ -90,36 +90,38 @@ func Compile(ver string, verbose bool) error {
 	}
 
 	// read the command output and update the terminal
-	go func() {
-		for {
-			str, err := rd.ReadString('\n')
-			if err != nil {
-				if err != io.EOF {
-					if !verbose {
-						fmt.Println(utils.Fail("✖"))
+	if verbose {
+		go func() {
+			for {
+				str, err := rd.ReadString('\n')
+				if err != nil {
+					if err != io.EOF {
+						if !verbose {
+							fmt.Println(utils.Fail("✖"))
+						}
+						log.Fatal(err)
 					}
-					log.Fatal(err)
+					break
 				}
-				break
+				if verbose {
+					fmt.Printf("%s", str)
+				}
 			}
-			if verbose {
-				fmt.Printf("%s", str)
-			}
-		}
-	}()
+		}()
 
-	// read the command error output and update the terminal
-	go func() {
-		for {
-			str, err := erd.ReadString('\n')
-			if err != nil {
-				break
+		// read the command error output and update the terminal
+		go func() {
+			for {
+				str, err := erd.ReadString('\n')
+				if err != nil {
+					break
+				}
+				if verbose {
+					fmt.Printf("%s", str)
+				}
 			}
-			if verbose {
-				fmt.Printf("%s", str)
-			}
-		}
-	}()
+		}()
+	}
 
 	// wait for the command
 	if err := p.Wait(); err != nil {
