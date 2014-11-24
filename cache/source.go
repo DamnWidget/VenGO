@@ -118,10 +118,13 @@ func Compile(ver string, verbose bool) error {
 	if !verbose {
 		fmt.Println(utils.Ok("✔"))
 	}
+	fmt.Printf("Generating manifest... ")
 	if err := generateManifest(ver); err != nil {
 		os.RemoveAll(filepath.Join(CacheDirectory(), ver))
+		fmt.Println(utils.Fail("✖"))
 		return err
 	}
+	fmt.Println(utils.Ok("✔"))
 
 	return nil
 }
