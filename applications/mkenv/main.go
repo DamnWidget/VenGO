@@ -57,6 +57,17 @@ func main() {
 	mkenv := commands.NewMkenv(options...)
 	data, err := mkenv.Run()
 	if err != nil {
+		if commands.IsNotInstalledError(err) {
+			fmt.Println(fmt.Sprintf(
+				"sorry vengo can't perform the operation because %s is %s",
+				mkenv.Version, utils.Fail("not installed")),
+			)
+			fmt.Printf(
+				"  %s: run 'vengo install %s'\n",
+				utils.Ok("suggestion"), mkenv.Version,
+			)
+			os.Exit(1)
+		}
 		fmt.Println(err)
 		os.Exit(1)
 	}

@@ -20,6 +20,8 @@
 
 package commands
 
+import "errors"
+
 // type of output format for commands
 const (
 	Text = iota
@@ -32,4 +34,12 @@ const (
 // executed command and an error, that should be nil if no error occurred
 type Runner interface {
 	Run() (string, error)
+}
+
+// error used when Go version used for mkenv is not installed yet
+var ErrNotInstalled = errors.New("Go version not installed")
+
+// determine if the given error is of ErrNotInstalled type
+func IsNotInstalledError(err error) bool {
+	return err == ErrNotInstalled
 }
