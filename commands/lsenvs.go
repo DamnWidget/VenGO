@@ -34,7 +34,7 @@ import (
 
 type EnvironmentsJSON struct {
 	Available []string `json:"available"`
-	Invalid   []string `josn:"invalid"`
+	Invalid   []string `json:"invalid"`
 }
 
 // EnvironmentsList command
