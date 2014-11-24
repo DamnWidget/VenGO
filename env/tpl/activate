@@ -74,16 +74,15 @@ unset PS1
 GOROOT="{{ .Goroot }}"
 export GOROOT
 
-_VENGO_PREV_PATH="$PATH"
-PATH="$GOROOT/bin:$PATH"
-export PATH
-
-
 GOTOOLDIR="{{ .Gotooldir }}"
 export GOTOOLDIR
 
 GOPATH="{{ .Gopath }}"
 export GOPATH
+
+_VENGO_PREV_PATH="$PATH"
+PATH="$GOROOT/bin:$GOPATH/bin:$PATH"
+export PATH
 
 PS1="{{ .PS1 }} ${_VENGO_PREV_PS1}"
 export PS1

@@ -41,10 +41,13 @@ func AlreadyCompiled(ver string) bool {
 	if _, err := os.Stat(manifest); err != nil {
 		return false
 	}
+	fmt.Print("Checking manifest integrity... ")
 	if err := CheckManifestIntegrity(manifest); err != nil {
+		fmt.Println(utils.Fail("✖"))
 		log.Println(err)
 		return false
 	}
+	fmt.Println(utils.Ok("✔"))
 	return true
 }
 
@@ -118,10 +121,13 @@ func Compile(ver string, verbose bool) error {
 	if !verbose {
 		fmt.Println(utils.Ok("✔"))
 	}
+	fmt.Printf("Generating manifest... ")
 	if err := generateManifest(ver); err != nil {
 		os.RemoveAll(filepath.Join(CacheDirectory(), ver))
+		fmt.Println(utils.Fail("✖"))
 		return err
 	}
+	fmt.Println(utils.Ok("✔"))
 
 	return nil
 }

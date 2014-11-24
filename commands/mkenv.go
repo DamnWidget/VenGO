@@ -21,7 +21,11 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/DamnWidget/VenGO/env"
 	"github.com/DamnWidget/VenGO/utils"
@@ -49,6 +53,13 @@ func NewMkenv(options ...func(i *Mkenv)) *Mkenv {
 
 // implements the Runner interface creating the new virtual environment
 func (m *Mkenv) Run() (string, error) {
+	fmt.Print("Checking intalled go versions... ")
+	if err := m.checkInstalled(); err != nil {
+		log.Println(utils.Fail("✖"))
+		return "", err
+	}
+	fmt.Println(utils.Ok("✔"))
+
 	newEnv := env.NewEnvironment(m.Name, m.Prompt)
 	if newEnv.Exists() && !m.Force {
 		suggest := fmt.Sprintf(
@@ -56,13 +67,38 @@ func (m *Mkenv) Run() (string, error) {
 		return "", fmt.Errorf("error: %s already exists\n%s", m.Name, suggest)
 	}
 	if err := newEnv.Generate(); err != nil {
+		os.RemoveAll(filepath.Join(os.Getenv("VENGO_HOME"), m.Name))
 		return "", err
 	}
 	if err := newEnv.Install(m.Version); err != nil {
+		os.RemoveAll(filepath.Join(os.Getenv("VENGO_HOME"), m.Name))
 		return "", err
 	}
 
 	return fmt.Sprintf(
 		"%s", utils.Ok(fmt.Sprintf(
 			"Go %s environment created using %s", m.Name, m.Version))), nil
+}
+
+// check if the Go version used to generate the virtual environment is
+// installed or not, if is not, return a NotIntalled error type
+func (m *Mkenv) checkInstalled() error {
+	l := NewList(func(l *List) {
+		l.DisplayAs = Json
+	})
+	result, err := l.Run()
+	if err != nil {
+		return err
+	}
+	jsonData := new(BriefJSON)
+	if err := json.Unmarshal([]byte(result), jsonData); err != nil {
+		return err
+	}
+	for _, v := range jsonData.Installed {
+		if v == m.Version {
+			return nil
+		}
+	}
+
+	return ErrNotInstalled
 }

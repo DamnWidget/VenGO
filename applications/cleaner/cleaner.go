@@ -1,3 +1,5 @@
+// +build clean
+
 /*
    Copyright (C) 2014  Oscar Campos <oscar.campos@member.fsf.org>
 
@@ -18,28 +20,14 @@
    See LICENSE file for more details.
 */
 
-package commands
+package main
 
-import "errors"
+import (
+	"os"
 
-// type of output format for commands
-const (
-	Text = iota
-	Json
+	"github.com/DamnWidget/VenGO/cache"
 )
 
-// Runner is a interface that wraps the execution of a command
-//
-// Runner returns a string (that can be empty) with the results of the
-// executed command and an error, that should be nil if no error occurred
-type Runner interface {
-	Run() (string, error)
-}
-
-// error used when Go version used for mkenv is not installed yet
-var ErrNotInstalled = errors.New("Go version not installed")
-
-// determine if the given error is of ErrNotInstalled type
-func IsNotInstalledError(err error) bool {
-	return err == ErrNotInstalled
+func main() {
+	os.RemoveAll(cache.CacheDirectory())
 }

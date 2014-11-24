@@ -476,5 +476,20 @@ var _ = Describe("Commands", func() {
 			Expect(m.Name).To(Equal("Test"))
 			Expect(m.Prompt).To(Equal(m.Name))
 		})
+
+		It("Return IsNotInstalledError if try to use not installed go versions", func() {
+			name := func(m *commands.Mkenv) {
+				m.Name = "Test"
+			}
+			version := func(m *commands.Mkenv) {
+				m.Version = "none"
+			}
+			m := commands.NewMkenv(name, version)
+
+			Expect(m).ToNot(BeNil())
+			_, err := m.Run()
+			Expect(err).To(HaveOccurred())
+			Expect(commands.IsNotInstalledError(err)).To(BeTrue())
+		})
 	})
 })

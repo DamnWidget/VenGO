@@ -20,12 +20,11 @@
 RM = rm -Rf
 CREATE_DIR = -D
 INSTALL = install
+ACTIVATE_TPL = env/tpl/activate
 INSTALL_DATA = $(INSTALL) -m 644 -p
 TARGET = $(HOME)/.VenGO
-TARGET_BINDIR = $(TARGET)/bin/vengo
-SCRIPTS = commands
+BINDIR = bin
 VERSION = VERSION
-VENGO = bin/vengo
 BUILD = go build -v -x -o
 
 default: build
@@ -34,12 +33,12 @@ default: build
 
 clean:
 	go clean
-	$(RM) $(SCRIPTS)/scripts/list
-	$(RM) $(SCRIPTS)/scripts/lsenvs
-	$(RM) $(SCRIPTS)/scripts/install
-	$(RM) $(SCRIPTS)/scripts/uninstall
-	$(RM) $(SCRIPTS)/scripts/mkenv
-	$(RM) $(SCRIPTS)/scripts/rmenv
+	$(RM) $(BINDIR)/list
+	$(RM) $(BINDIR)/lsenvs
+	$(RM) $(BINDIR)/install
+	$(RM) $(BINDIR)/uninstall
+	$(RM) $(BINDIR)/mkenv
+	$(RM) $(BINDIR)/rmenv
 
 test: cache_test env_test
 
@@ -56,36 +55,40 @@ commands_test:
 .PHONY: commands_test
 
 build: clean test
-	$(BUILD) commands/scripts/list ./applications/list
-	$(BUILD) commands/scripts/lsenvs ./applications/lsenvs
-	$(BUILD) commands/scripts/install ./applications/install
-	$(BUILD) commands/scripts/uninstall ./applications/uninstall
-	$(BUILD) commands/scripts/mkenv ./applications/mkenv
-	$(BUILD) commands/scripts/rmenv ./applications/rmenv
+	$(BUILD) bin/list ./applications/list
+	$(BUILD) bin/lsenvs ./applications/lsenvs
+	$(BUILD) bin/install ./applications/install
+	$(BUILD) bin/uninstall ./applications/uninstall
+	$(BUILD) bin/mkenv ./applications/mkenv
+	$(BUILD) bin/rmenv ./applications/rmenv
 
 fast_build:
-	$(BUILD) commands/scripts/list ./applications/list
-	$(BUILD) commands/scripts/lsenvs ./applications/lsenvs
-	$(BUILD) commands/scripts/install ./applications/install
-	$(BUILD) commands/scripts/uninstall ./applications/uninstall
-	$(BUILD) commands/scripts/mkenv ./applications/mkenv
-	$(BUILD) commands/scripts/rmenv ./applications/rmenv
+	$(BUILD) bin/list ./applications/list
+	$(BUILD) bin/lsenvs ./applications/lsenvs
+	$(BUILD) bin/install ./applications/install
+	$(BUILD) bin/uninstall ./applications/uninstall
+	$(BUILD) bin/mkenv ./applications/mkenv
+	$(BUILD) bin/rmenv ./applications/rmenv
 
-install: build installdirs
-	$(INSTALL) $(CREATE_DIR) $(VENGO) $(TARGET_BINDIR)
+install: fast_build installdirs
+	$(INSTALL_DATA) $(CREATE_DIR) $(ACTIVATE_TPL) $(TARGET)/scripts/tpl/activate
 	$(INSTALL_DATA) $(VERSION) $(TARGET)/version
-	$(INSTALL_DATA) -D env/tpl/activate $(TARGET)/scripts/tpl/activate
+	echo ""
+	echo "\033[32mVenGO is now installed in your system\033[0m"
+	echo "add 'source $(HOME)/.VenGO/bin/vengo' to your .bashrc or .profile to activate it"
+	echo "you can also do '. $(HOME)/.VenGO/bin/vengo' to start using it right now"
 .PHONY: install
 
 installdirs:
-	(cd $(SCRIPTS) && tar -cf - scripts) | (cd $(TARGET) && tar -xf -)
+	install -d $(TARGET)
+	(tar -cf - bin) | (cd $(TARGET) && tar -xf -)
 .PHONY: installdirs
 
 uninstall:
 	$(RM) $(TARGET)
-	go build -o cleaner ./application/cleaner
+	go build -tags clean -o cleaner ./application/cleaner
 	./cleaner
 	$(RM) ./cleaner
 .PHONY: uninstall
 
-.SILENT: clean build test cache_test env_test commands_test
+.SILENT: clean build fast_build test cache_test env_test commands_test install installdirs
