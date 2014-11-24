@@ -74,7 +74,7 @@ install: fast_build installdirs
 	$(INSTALL_DATA) $(CREATE_DIR) $(ACTIVATE_TPL) $(TARGET)/scripts/tpl/activate
 	$(INSTALL_DATA) $(VERSION) $(TARGET)/version
 	echo ""
-	echo "VenGO is now installed in your system"
+	echo "\033[32mVenGO is now installed in your system\033[0m"
 	echo "add 'source $(HOME)/.VenGO/bin/vengo' to your .bashrc or .profile to activate it"
 	echo "you can also do '. $(HOME)/.VenGO/bin/vengo' to start using it right now"
 .PHONY: install
@@ -86,7 +86,7 @@ installdirs:
 
 uninstall:
 	$(RM) $(TARGET)
-	go build -o cleaner ./application/cleaner
+	go build -tags clean -o cleaner ./application/cleaner
 	./cleaner
 	$(RM) ./cleaner
 .PHONY: uninstall
