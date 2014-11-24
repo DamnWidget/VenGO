@@ -92,7 +92,13 @@ func (l *List) display(versions map[string][]string) (string, error) {
 		if l.ShowBoth || l.ShowInstalled {
 			output = append(output, utils.Ok("Installed"))
 			for _, v := range versions["installed"] {
-				output = append(output, fmt.Sprintf("%s %s", v, utils.Ok("✔")))
+				_, err := os.Stat(
+					filepath.Join(cache.CacheDirectory(), v, ".vengo-manifest"))
+				check := utils.Ok("✔")
+				if err != nil {
+					check = utils.Fail("✖")
+				}
+				output = append(output, fmt.Sprintf("    %s %s", v, check))
 			}
 		}
 		if l.ShowBoth || l.ShowNotInstalled {
@@ -141,7 +147,7 @@ func (l *List) getInstalled(tags, sources, binaries []string) ([]string, error) 
 			}
 			if stat.IsDir() {
 				if l.isValidVersion(filename, tags, sources, binaries) {
-					versions = append(versions, fmt.Sprintf("    %s", filename))
+					versions = append(versions, filename)
 				}
 			}
 		}
