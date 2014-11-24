@@ -61,7 +61,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%s has been uninstalled\n", version)
+	fmt.Printf("%s has been uninstalled\n", utils.Ok(version))
 }
 
 // display help message
