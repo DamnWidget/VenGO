@@ -1,4 +1,3 @@
-#!/bin/bash
 
 # Copyright (C) 2014  Oscar Campos <oscar.campos@member.fsf.org>
 
@@ -18,74 +17,116 @@
 
 # See LICENSE file for more details.
 
-if [ ! -d "$HOME/.VenGO" ]; then
-    echo "VenGO: Seems like VenGO is not installed in your system.
-  suggestion: install VenGO running make && make install in your downloaded VenGO directory" >&2
+if [ "$VENGO_HOME" = "" ]; then
+    export VENGO_HOME="$HOME/.VenGO"
+    . $VENGO_HOME/bin/includes/output
+    . $VENGO_HOME/bin/includes/utils
+    . $VENGO_HOME/bin/includes/env
+    . $VENGO_HOME/bin/includes/help
 fi
 
-if [ -z "$VENGO_HOME" ]; then
-    echo "VenGO: VENGO_HOME is not set. Shutdown now...
-  suggestion: add '. ~/.VenGO/scripts/VenGO.sh' to your .bashrc or .profile" >&2
-    exit 1
-fi
+# main VenGO entry point
+function vengo {
+    if [ -n "$1" ]; then
+        command=$1
+        if [ "$command" = "version" ]; then
+            version=$(<$VENGO_HOME/version)
+            echo -e "VenGO, Virtual Golang Environment builder `Ok`v$version`Reset`"
+            return 0
+        elif [ "$command" = "vengo-uninstall" ]; then
+            echo -ne "this will uninstall VenGO and `Fail`remove`Reset` all your Go "
+            echo -n "virtual environments "
 
-# include libraries
-for include in $VENGO_HOME/scripts/includes/*; do
-    if [ -f "$include" ]; then
-        . "$include"
-    fi
-done
+            while true; do
+                #statements
+                read -p "are you sure? [y/n] " answer
+                case $answer in
+                    [Yy]*)
+                        vengo_uninstall
+                        break
+                    ;;
+                    [Nn]*)
+                        return 0
+                    ;;
+                    *)
+                        echo "Please answer yes or no."
+                    ;;
+                esac
+            done
+            return 0
+        elif [ "$command" = "activate" ]; then
+            shift
+            environment="$1"
+            if [ "$environment" = "" ]; then
+                $VENGO_HOME/bin/lsenvs
+                return 1
+            fi
+            if [ "$environment" = "-h" ] || [ "$environment" = "--help" ]; then
+                vengo_activate_help
+                return 1
+            fi
 
-# include commands
-for script in $VENGO_HOME/scripts/*; do
-    if [ -f "$script" ] && [ ! -x "$script" ]; then
-        . "$script"
-    fi
-done
+            shift
+            for i in "$@"; do
+                case $i in
+                    --pre-activate=*)
+                        pre_activate_script=$(echo "$1" | sed 's/[-a-zA-Z0-9]*=//')
+                    ;;
+                    --post-activate=*)
+                        post_activate_script=$(echo "$i" | sed 's/[-a-zA-Z0-9]*=//')
+                    ;;
+                    -h|--help)
+                        vengo_activate_help
+                        return 0
+                    ;;
+                    *)
+                        echo "Invalid option $i"
+                        vengo_activate_help
+                        return 65
+                    ;;
+                esac
+            done
 
-command=$1
-# handle VenGO uninstall command
-if [ "$command" == "vengo-uninstall" ]; then
-    echo -ne "this will uninstall VenGO and `Fail`remove`Reset` all your Go "
-    echo -n "virtual environments "
+            check_environment_exixtance $environment || return 1
+            activate="$VENGO_HOME/$environment/bin/activate"
+            if [ ! -f "$activate" ]; then
+                echo "VenGO: Environment '$VENGO_HOME/$environment' doesn't contains an activate script." >&2
+                echo "  `Ok`suggestion`Reset`: check the integrity of the environments with 'vengo lsenvs'" >&2
+                return 1
+            fi
 
-    while true; do
-        #statements
-        read -p "are you sure? [y/n] " answer
-        case $answer in
-            [Yy]*)
-                vengo_uninstall
-                break
-            ;;
-            [Nn]*)
-                exit 0
-            ;;
-            *)
-                echo "Please answer yes or no."
-            ;;
-        esac
-    done
-fi
+            # call deactivate if we are currently into a virtual environment
+            type deactivate >/dev/null 2>&1
+            if [ $? -eq 0 ]; then
+                deactivate
+                unset -f deactivate >/dev/null 2>&1
+            fi
 
-# handle version command
-if [ "$command" == "version" ]; then
-    version=$(<$VENGO_HOME/version)
-    echo -e "VenGO, Virtual Golang Environment builder `Ok`v$version`Reset`"
-    exit 0
-fi
+            if [ -z ${pre_activate_script+x} ] && [ "$pre_activate_script" != "" ]; then
+                pre_activate_script "$environment"
+            fi
 
-# handle the given command with the right command handler
-if [ -f "$VENGO_HOME/scripts/$command" ]; then
-    shift
-    $command "$@"
-elif [ -n "$command" ]; then
-    echo "Command '$command' doesn't look like a valid VenGO command..."
-    suggest "execute 'vengo' with no arguments to get a list of valid commands"
-else
-    echo -e "Usage: vengo [command]
+            source "$activate"
+
+            if [ -z ${post_activate_script+x} ] && [ "$post_activate_script" != "" ]; then
+                post_activate_script "$environment"
+            fi
+
+            return 0
+        # handle the given command with the right command handler
+        elif [ -f "$VENGO_HOME/bin/$command" ]; then
+            shift
+            $VENGO_HOME/bin/$command "$@"
+        elif [ -n "$command" ]; then
+            echo "Command '$command' doesn't look like a valid VenGO command..."
+            suggest "execute 'vengo' with no arguments to get a list of valid commands"
+        fi
+    else
+        echo -e "Usage: vengo [command]
 
 Where command is one of the list below:
 
+  `Ok`activate`Reset`           Activate a Virtual Go Environment
   `Ok`install`Reset`            Installs a new Go version
   `Ok`uninstall`Reset`          Uninstall an installed Go version
   `Ok`list`Reset`               List installed and available Go versions
@@ -94,4 +135,7 @@ Where command is one of the list below:
   `Ok`rmenv`Reset`              Remove a Virtual Go Environment
   `Ok`vengo-uninstall`Reset`    Uninstall VenGO and remove all the Virtual Go Environments
 "
-fi
+    fi
+
+    return 1
+}
