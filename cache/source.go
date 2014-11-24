@@ -41,10 +41,13 @@ func AlreadyCompiled(ver string) bool {
 	if _, err := os.Stat(manifest); err != nil {
 		return false
 	}
+	fmt.Print("Checking manifest integrity... ")
 	if err := CheckManifestIntegrity(manifest); err != nil {
+		fmt.Println(utils.Fail("✖"))
 		log.Println(err)
 		return false
 	}
+	fmt.Println(utils.Ok("✔"))
 	return true
 }
 

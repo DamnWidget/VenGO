@@ -92,8 +92,6 @@ func CheckManifestIntegrity(manifestName string) error {
 			}
 			fileSha1 := fmt.Sprintf("%x", sha1.Sum(data))
 			if splitData[0] != fileSha1 {
-				fmt.Printf("%s -> %s\n", f, splitData[0])
-				fmt.Printf("%s -> %s\n", f, fileSha1)
 				return fmt.Errorf("Integrity check failed!")
 			}
 		}

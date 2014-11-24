@@ -51,7 +51,7 @@ var _ = Describe("Env", func() {
 			Expect(err).ToNot(HaveOccurred())
 			byteLines := bytes.Split(activate, []byte("\n"))
 			vengoPath := fmt.Sprintf(`VENGO_ENV="%s/goTest"`, cache.VenGO_PATH)
-			sysPath := fmt.Sprint(`PATH="$GOROOT/bin:$PATH"`)
+			sysPath := fmt.Sprint(`PATH="$GOROOT/bin:$GOPATH/bin:$PATH"`)
 			goRoot := fmt.Sprintf(`GOROOT="%s"`, e.Goroot)
 			goTooldir := fmt.Sprintf(`GOTOOLDIR="%s"`, e.Gotooldir)
 			goPath := fmt.Sprintf(`GOPATH="%s"`, e.VenGO_PATH)
@@ -59,10 +59,10 @@ var _ = Describe("Env", func() {
 
 			Expect(byteLines[53]).To(Equal([]byte(vengoPath)))
 			Expect(byteLines[73]).To(Equal([]byte(goRoot)))
-			Expect(byteLines[77]).To(Equal([]byte(sysPath)))
-			Expect(byteLines[81]).To(Equal([]byte(goTooldir)))
-			Expect(byteLines[84]).To(Equal([]byte(goPath)))
-			Expect(byteLines[87]).To(Equal([]byte(ps1)))
+			Expect(byteLines[83]).To(Equal([]byte(sysPath)))
+			Expect(byteLines[76]).To(Equal([]byte(goTooldir)))
+			Expect(byteLines[79]).To(Equal([]byte(goPath)))
+			Expect(byteLines[86]).To(Equal([]byte(ps1)))
 
 		})
 	})
