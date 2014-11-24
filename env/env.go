@@ -31,7 +31,7 @@ import (
 	"github.com/DamnWidget/VenGO/cache"
 )
 
-const environTemplate = "tpl/activate"
+var environTemplate = "tpl/activate"
 
 type Environment struct {
 	Goroot     string
@@ -54,8 +54,22 @@ func NewEnvironment(name, prompt string) *Environment {
 	}
 }
 
-// Generate an environment file
+// checks if a environment already exists
+func (e *Environment) Exists() bool {
+	if _, err := os.Stat(e.VenGO_PATH); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
+
+// generate an environment file
 func (e *Environment) Generate() error {
+	if os.Getenv("VENGO_HOME") != "" {
+		environTemplate = filepath.Join(
+			os.Getenv("VENGO_HOME"), "scripts", "tpl", "activate")
+	}
 	file, err := e.checkPath()
 	if err != nil {
 		return err
@@ -112,9 +126,22 @@ func (e *Environment) Install(ver string) error {
 	if _, err := os.Stat(path); err != nil {
 		path = filepath.Join(cache.CacheDirectory(), fmt.Sprintf("go%s", ver))
 	}
-	if err := os.Symlink(path, filepath.Join(e.VenGO_PATH, "lib")); err != nil {
-		fmt.Println("while creating symlink:", err)
-		return err
+
+	link := func() error {
+		return os.Symlink(path, filepath.Join(e.VenGO_PATH, "lib"))
+	}
+
+	if err := link(); err != nil {
+		if os.IsExist(err) {
+			os.Remove(filepath.Join(e.VenGO_PATH, "lib"))
+			if err := link(); err != nil {
+				fmt.Println("while creating symlink:", err)
+				return err
+			}
+		} else {
+			fmt.Println("while creating symlink:", err)
+			return err
+		}
 	}
 
 	return nil

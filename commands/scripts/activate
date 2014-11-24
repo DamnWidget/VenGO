@@ -51,7 +51,7 @@ function activate {
     activate="$VENGO_HOME/$environemnt/bin/activate"
     if [ ! -f "$activate" ]; then
         echo "VenGO: Environment '$VENGO_HOME/$environemnt' doesn't contains an activate script." >&2
-        echo "  suggestion: check the integrity of the environment with 'vengo check $environment'" >&2
+        echo "  suggestion: check the integrity of the environments with 'vengo lsenvs'" >&2
         return 1
     fi
 

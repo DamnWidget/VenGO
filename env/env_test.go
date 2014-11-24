@@ -16,6 +16,7 @@ import (
 var _ = Describe("Env", func() {
 
 	// disable log output
+	cache.Output = ioutil.Discard
 	log.SetOutput(ioutil.Discard)
 
 	AfterSuite(func() {

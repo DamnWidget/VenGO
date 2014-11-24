@@ -328,6 +328,9 @@ var _ = Describe("Commands", func() {
 					Expect(os.MkdirAll(filepath.Join(envsPath, "MyEnv3", "bin"), 0755)).To(Succeed())
 					Expect(os.MkdirAll(filepath.Join(envsPath, "MyInvalidEnv1"), 0755)).To(Succeed())
 					Expect(os.MkdirAll(filepath.Join(envsPath, "MyInvalidEnv2"), 0755)).To(Succeed())
+					Expect(os.Symlink(envsPath, filepath.Join(envsPath, "MyEnv1", "lib"))).To(Succeed())
+					Expect(os.Symlink(envsPath, filepath.Join(envsPath, "MyEnv2", "lib"))).To(Succeed())
+					Expect(os.Symlink(envsPath, filepath.Join(envsPath, "MyEnv3", "lib"))).To(Succeed())
 
 					f, err := os.Create(filepath.Join(envsPath, "MyEnv1", "bin", "activate"))
 					Expect(err).ToNot(HaveOccurred())
@@ -449,6 +452,29 @@ var _ = Describe("Commands", func() {
 				Expect(out).To(Equal("error while installing from mercurial"))
 				Expect(err).To(Equal(fmt.Errorf("go20.1 doesn't seems to be a valid Go release\n")))
 			})
+		})
+	})
+
+	Describe("NewMkenv", func() {
+		It("Creates and return back a configure MkEnv command", func() {
+			m := commands.NewMkenv()
+
+			Expect(m).ToNot(BeNil())
+			Expect(m.Force).To(BeFalse())
+			Expect(m.Name).To(Equal(""))
+			Expect(m.Prompt).To(Equal(""))
+			Expect(m.Version).To(Equal(""))
+		})
+
+		It("Use name as prompt if prompt is empty", func() {
+			name := func(m *commands.Mkenv) {
+				m.Name = "Test"
+			}
+			m := commands.NewMkenv(name)
+
+			Expect(m).ToNot(BeNil())
+			Expect(m.Name).To(Equal("Test"))
+			Expect(m.Prompt).To(Equal(m.Name))
 		})
 	})
 })

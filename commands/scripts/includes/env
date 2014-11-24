@@ -27,18 +27,3 @@ function check_environment_exixtance {
     fi
     return 0
 }
-
-
-# var main = {
-#         info: chalk.blue('ℹ'),
-#         success: chalk.green('✔'),
-#         warning: chalk.yellow('⚠'),
-#         error: chalk.red('✖')
-# };
-
-# var win = {
-#         info: chalk.blue('i'),
-#         success: chalk.green('√'),
-#         warning: chalk.yellow('‼'),
-#         error: chalk.red('×')
-# };

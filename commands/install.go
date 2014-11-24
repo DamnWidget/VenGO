@@ -54,7 +54,7 @@ func NewInstall(options ...func(i *Install)) *Install {
 }
 
 // implements the Runner interface executing the required installation
-func (i *Install) Run() (string, error) {
+func (i *Install) Run() (result string, err error) {
 	switch i.Source {
 	case Mercurial:
 		return i.fromMercurial()

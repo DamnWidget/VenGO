@@ -179,6 +179,10 @@ func (l *List) getNonInstalled(v, tags, sources, binaries []string) []string {
 
 // check if a given version is valid in all the possible containers
 func (l *List) isValidVersion(file string, tags, sources, binaries []string) bool {
+	// tip is always a valid version
+	if file == "tip" {
+		return true
+	}
 	// look on the sources first that is the smaller collection
 	for _, ver := range sources {
 		if file == ver {
