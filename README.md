@@ -160,7 +160,7 @@ Vengo uninstall is used to uninstall a Go installed version, it doesn't remove a
 ### VenGO mkenv
 
 Vengo mkenv is used to create new Isolated Virtual Go Environments, the Go version to use must can be specified as argument for the parameter `-g` or `--go`, if no version is pased, `tip` is tried to be used automatically.
-![VenGO Install](https://raw.githubusercontent.com/DamnWidget/VenGO/images/mkenv00.png)
+![VenGO Install](https://raw.githubusercontent.com/DamnWidget/VenGO/images/mkenv.png)
 
 Vengo mkenv will use the name of the environment as prefix of the terminal prompt when the user switch to an environment using `vengo activate` but the users can specify whatever other prompt that they like passing a string to the parameter `-p` or `--prompt` so for exmample:
 
