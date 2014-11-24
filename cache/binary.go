@@ -22,6 +22,8 @@ package cache
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -48,6 +50,10 @@ func CacheDownloadBinary(ver string, f ...bool) error {
 			url = strings.Replace(url, ".tar.gz", ".zip", -1)
 		}
 		if err := downloadAndExtract(ver, url, expected_sha1); err != nil {
+			return err
+		}
+		if err := generateManifest(ver); err != nil {
+			os.RemoveAll(filepath.Join(CacheDirectory(), ver))
 			return err
 		}
 	}

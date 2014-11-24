@@ -37,13 +37,15 @@ import (
 
 // determine if a Go version has been already compiled in the cache
 func AlreadyCompiled(ver string) bool {
-	_, err := os.Stat(filepath.Join(CacheDirectory(), ver, "go", "bin", "go"))
-	if err != nil {
-		ver = fmt.Sprintf("go%s", ver)
-		_, err := os.Stat(filepath.Join(CacheDirectory(), ver, "bin", "go"))
-		return err == nil
+	manifest := filepath.Join(CacheDirectory(), ver, ".vengo-manifest")
+	if _, err := os.Stat(manifest); err != nil {
+		return false
 	}
-	return err == nil
+	if err := CheckManifestIntegrity(manifest); err != nil {
+		log.Println(err)
+		return false
+	}
+	return true
 }
 
 // compile a given version of go in the cache
@@ -56,7 +58,7 @@ func Compile(ver string, verbose bool) error {
 	prefixed := false
 	err := os.Chdir(filepath.Join(CacheDirectory(), ver, "go", "src"))
 	if err != nil {
-		if !strings.HasPrefix(ver, "go") {
+		if !strings.HasPrefix(ver, "go") && ver != "tip" {
 			ver = fmt.Sprintf("go%s", ver)
 		}
 		prefixed = true
@@ -91,36 +93,7 @@ func Compile(ver string, verbose bool) error {
 
 	// read the command output and update the terminal
 	if verbose {
-		go func() {
-			for {
-				str, err := rd.ReadString('\n')
-				if err != nil {
-					if err != io.EOF {
-						if !verbose {
-							fmt.Println(utils.Fail("✖"))
-						}
-						log.Fatal(err)
-					}
-					break
-				}
-				if verbose {
-					fmt.Printf("%s", str)
-				}
-			}
-		}()
-
-		// read the command error output and update the terminal
-		go func() {
-			for {
-				str, err := erd.ReadString('\n')
-				if err != nil {
-					break
-				}
-				if verbose {
-					fmt.Printf("%s", str)
-				}
-			}
-		}()
+		logCompilation(rd, erd)
 	}
 
 	// wait for the command
@@ -145,8 +118,39 @@ func Compile(ver string, verbose bool) error {
 	if !verbose {
 		fmt.Println(utils.Ok("✔"))
 	}
+	if err := generateManifest(ver); err != nil {
+		os.RemoveAll(filepath.Join(CacheDirectory(), ver))
+		return err
+	}
 
 	return nil
+}
+
+// log compilation process
+func logCompilation(rd, erd *bufio.Reader) {
+	go func() {
+		for {
+			str, err := rd.ReadString('\n')
+			if err != nil {
+				if err != io.EOF {
+					log.Fatal(err)
+				}
+				break
+			}
+			fmt.Printf("%s", str)
+		}
+	}()
+
+	// read the command error output and update the terminal
+	go func() {
+		for {
+			str, err := erd.ReadString('\n')
+			if err != nil {
+				break
+			}
+			fmt.Printf("%s", str)
+		}
+	}()
 }
 
 // Download an specific version of Golang source code

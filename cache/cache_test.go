@@ -214,9 +214,11 @@ var _ = Describe("Cache", func() {
 			It("Shoudl return true if the source has been compiled", func() {
 				os.MkdirAll(filepath.Join(cache.CacheDirectory(), "test1", "go", "bin"), 0755)
 				filename := filepath.Join(cache.CacheDirectory(), "test1", "go", "bin", "go")
-				err := ioutil.WriteFile(filename, []byte{}, 0644)
 
-				Expect(err).ToNot(HaveOccurred())
+				Expect(ioutil.WriteFile(filename, []byte{}, 0644)).To(Succeed())
+				filename = filepath.Join(cache.CacheDirectory(), "test1", ".vengo-manifest")
+
+				Expect(ioutil.WriteFile(filename, []byte{}, 0644)).To(Succeed())
 				Expect(cache.AlreadyCompiled("test1")).To(BeTrue())
 				os.RemoveAll(filepath.Join(cache.CacheDirectory(), "test1"))
 

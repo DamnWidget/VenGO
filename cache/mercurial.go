@@ -62,7 +62,14 @@ func CacheDonwloadMercurial(ver string, f ...bool) error {
 	if err := cloneSource(); err != nil {
 		return err
 	}
-	if err := checkSource(availableVersions[index]); err != nil {
+	var toCheck string
+	if index == 0xDEADBEEF {
+		toCheck = "tip"
+	} else {
+		toCheck = availableVersions[index]
+	}
+
+	if err := checkSource(toCheck); err != nil {
 		return err
 	}
 
@@ -143,6 +150,10 @@ func copySource(ver string) error {
 }
 
 func lookupVersion(ver string, availableVersions []string) (index int) {
+	if ver == "tip" {
+		return 0xDEADBEEF
+	}
+
 	if !strings.HasPrefix(ver, "go") && !strings.HasPrefix(ver, "release") {
 		return -1
 	}
@@ -206,9 +217,18 @@ func openMercurialLogs() *os.File {
 		filepath.Join(logsDir, "mercurial-go.log"), openFlags, 0644,
 	)
 	if err != nil {
-		fmt.Fprintf(Output, "error: can't open log file to write: %s\n", err)
-		fmt.Fprintln(Output, "this is a non fatal error, ignoring...")
-		return nil
+		if os.IsNotExist(err) {
+			os.MkdirAll(logsDir, 0755)
+			file, err = os.OpenFile(
+				filepath.Join(logsDir, "mercurial-go.log"), openFlags, 0644,
+			)
+			if err != nil {
+				fmt.Fprintf(
+					Output, "error: can't open log file to write: %s\n", err)
+				fmt.Fprintln(Output, "this is a non fatal error, ignoring...")
+				return nil
+			}
+		}
 	}
 	return file
 }
