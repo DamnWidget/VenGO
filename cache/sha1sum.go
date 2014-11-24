@@ -84,7 +84,7 @@ func CheckManifestIntegrity(manifestName string) error {
 			f := strings.TrimRight(splitData[1], "\n\r")
 			fi, statErr := os.Stat(f)
 			if statErr != nil {
-				return fmt.Errorf("Integirty check failed! %s", statErr)
+				return fmt.Errorf("Integrity check failed! %s", statErr)
 			}
 			data := []byte(f)
 			if !fi.IsDir() {
