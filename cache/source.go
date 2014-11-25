@@ -26,7 +26,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -79,34 +78,9 @@ func Compile(ver string, verbose bool) error {
 	if runtime.GOOS == "windows" {
 		cmd = "./make.bat"
 	}
-	p := exec.Command(cmd)
-	out, err := p.StdoutPipe()
-	outErr, err := p.StderrPipe()
-	if err != nil {
+	if err := utils.Exec(verbose, cmd); err != nil {
 		return err
 	}
-	rd := bufio.NewReader(out)
-	erd := bufio.NewReader(outErr)
-	if err := p.Start(); err != nil {
-		if !verbose {
-			fmt.Println(utils.Fail("✖"))
-		}
-		return err
-	}
-
-	// read the command output and update the terminal
-	if verbose {
-		logCompilation(rd, erd)
-	}
-
-	// wait for the command
-	if err := p.Wait(); err != nil {
-		if !verbose {
-			fmt.Println(utils.Fail("✖"))
-		}
-		fmt.Println(err)
-	}
-
 	goBin := filepath.Join(CacheDirectory(), ver, "go", "bin", "go")
 	if prefixed {
 		goBin = filepath.Join(CacheDirectory(), ver, "bin", "go")
