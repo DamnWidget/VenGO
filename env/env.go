@@ -147,6 +147,11 @@ func (e *Environment) Install(ver string) error {
 	return nil
 }
 
+// return back a list of packages installed in the environment
+func (e *Environment) Packages() ([]*Package, error) {
+	return nil, nil
+}
+
 // environment manifest structure
 type envManifest struct {
 	name      string
@@ -164,7 +169,7 @@ func NewEnvManifest(env *Environment, options ...func(em *envManifest)) (*envMan
 	if err := em.getPackages(env); err != nil {
 		return nil, err
 	}
-	return em
+	return em, nil
 }
 
 // detect all the environment manifest packages and populate its own manifests

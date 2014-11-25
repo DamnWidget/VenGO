@@ -45,7 +45,7 @@ func NewPackage(options ...func(p *Package)) *Package {
 }
 
 // create a string representation of a package
-func (p *Package) String() {
+func (p *Package) String() string {
 	check := utils.Ok("✔")
 	if !p.Installed {
 		check = utils.Fail("✖")
@@ -70,13 +70,16 @@ func NewPackageManifest(env *Environment, options ...func(pm *packageManifest)) 
 	if err := pm.getVcs(env); err != nil {
 		return nil, err
 	}
-	return pm
+	return pm, nil
 }
 
 // detect the version control system used for a go package and assign it
 func (pm *packageManifest) getVcs(env *Environment) error {
 	packagePath := filepath.Join(env.Gopath, "src", pm.url)
-	currdir := os.Getwd()
+	currdir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
 	if err := os.Chdir(packagePath); err != nil {
 		return err
 	}
