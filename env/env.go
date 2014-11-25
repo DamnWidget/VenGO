@@ -146,3 +146,42 @@ func (e *Environment) Install(ver string) error {
 
 	return nil
 }
+
+// environment manifest structure
+type envManifest struct {
+	name      string
+	path      string
+	goVersion string
+	packages  []*packageManifest
+}
+
+// creates a new envManifest
+func NewEnvManifest(env *Environment, options ...func(em *envManifest)) (*envManifest, error) {
+	em := new(envManifest)
+	for _, option := range options {
+		option(em)
+	}
+	if err := em.getPackages(env); err != nil {
+		return nil, err
+	}
+	return em
+}
+
+// detect all the environment manifest packages and populate its own manifests
+func (em *envManifest) getPackages(env *Environment) error {
+	packages, err := env.Packages()
+	if err != nil {
+		return err
+	}
+	for _, p := range packages {
+		name := func(pm *packageManifest) { pm.name = p.Name }
+		url := func(pm *packageManifest) { pm.url = p.Url }
+		pm, err := NewPackageManifest(env, name, url)
+		if err != nil {
+			return err
+		}
+		em.packages = append(em.packages, pm)
+	}
+
+	return nil
+}
