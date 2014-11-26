@@ -33,31 +33,23 @@ Windows | Garbage |
 
 ## Installation
 
-VenGO can be installed following three simple steps
+VenGO can be installed following two simple steps
 
-### 1 Get dependencies and code
+### 1 Install the tools
 
-Install the VenGO dependencies
+Install VenGO and it's dependencies
 
+#### With wget
 ```
-$ go get github.com/mcuadros/go-version github.com/ogier/pflag
-```
-
-Now get VenGO code itself into the `GOPATH`
-
-```
-$ go get -d github.com/DamnWidget/VenGO
+wget --no-check-certificate https://raw.github.com/DamnWidget/VenGO/master/install.sh -O - | sh
 ```
 
-### 2 Compile and install
-
-VenGO comes with a `Makefile` for your convenience (so the `make` command line tool has to be installed)
-
+#### With curl
 ```
-$ cd $GOPATH/src/github.com/DamnWidget/VenGO && make install
+curl -L https://raw.github.com/DamnWidget/VenGO/master/install.sh | sh
 ```
 
-### 3 Enable the vengo application in your shell
+### 2 Enable the vengo application in your shell
 
 Finally the command below will enable the `vengo` command in your system
 
@@ -65,7 +57,7 @@ Finally the command below will enable the `vengo` command in your system
 $ source $HOME/.VenGO/bin/vengo
 ```
 
-#### 4 Optional
+#### 3 Optional
 
 If you want to enable `vengo` in permanent basis in your system, you can add it to your .bashrc, .zshrc or .profile
 files like
