@@ -17,28 +17,9 @@
 
 # See LICENSE file for more details.
 
-RM = rm -Rf
-CREATE_DIR = -D
-INSTALL = install
-ACTIVATE_TPL = env/tpl/activate
-INSTALL_DATA = $(INSTALL) -m 644 -p
-TARGET = $(HOME)/.VenGO
-BINDIR = bin
-VERSION = VERSION
-BUILD = go build -v -x -o
-
-default: build
+default: test
 
 .PHONY: default
-
-clean:
-	go clean
-	$(RM) $(BINDIR)/list
-	$(RM) $(BINDIR)/lsenvs
-	$(RM) $(BINDIR)/install
-	$(RM) $(BINDIR)/uninstall
-	$(RM) $(BINDIR)/mkenv
-	$(RM) $(BINDIR)/rmenv
 
 test: cache_test env_test
 
@@ -54,41 +35,4 @@ commands_test:
 	cd commands && ginkgo -r --randomizeAllSpecs --failOnPending --randomizeSuites --trace --race
 .PHONY: commands_test
 
-build: clean test
-	$(BUILD) bin/list ./applications/list
-	$(BUILD) bin/lsenvs ./applications/lsenvs
-	$(BUILD) bin/install ./applications/install
-	$(BUILD) bin/uninstall ./applications/uninstall
-	$(BUILD) bin/mkenv ./applications/mkenv
-	$(BUILD) bin/rmenv ./applications/rmenv
-
-fast_build:
-	$(BUILD) bin/list ./applications/list
-	$(BUILD) bin/lsenvs ./applications/lsenvs
-	$(BUILD) bin/install ./applications/install
-	$(BUILD) bin/uninstall ./applications/uninstall
-	$(BUILD) bin/mkenv ./applications/mkenv
-	$(BUILD) bin/rmenv ./applications/rmenv
-
-install: fast_build installdirs
-	$(INSTALL_DATA) $(CREATE_DIR) $(ACTIVATE_TPL) $(TARGET)/scripts/tpl/activate
-	$(INSTALL_DATA) $(VERSION) $(TARGET)/version
-	echo ""
-	echo "\033[32mVenGO is now installed in your system\033[0m"
-	echo "add 'source $(HOME)/.VenGO/bin/vengo' to your .bashrc or .profile to activate it"
-	echo "you can also do '. $(HOME)/.VenGO/bin/vengo' to start using it right now"
-.PHONY: install
-
-installdirs:
-	install -d $(TARGET)
-	(tar -cf - bin) | (cd $(TARGET) && tar -xf -)
-.PHONY: installdirs
-
-uninstall:
-	$(RM) $(TARGET)
-	go build -tags clean -o cleaner ./application/cleaner
-	./cleaner
-	$(RM) ./cleaner
-.PHONY: uninstall
-
-.SILENT: clean build fast_build test cache_test env_test commands_test install installdirs
+.SILENT: test cache_test env_test commands_test
