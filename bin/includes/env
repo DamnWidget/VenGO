@@ -27,3 +27,16 @@ function check_environment_exixtance {
     fi
     return 0
 }
+
+# uninstall VenGO
+function vengo_uninstall {
+    # deactivate any active session
+    deactivate
+    # remove all the VenGO cache
+    $VENGO_HOME/bin/cleaner
+    # delete VENGO_HOME
+    rm -Rf $VENGO_HOME
+    unset check_environment_exixtance
+    unset vengo_uninstall
+    unset vengo
+}

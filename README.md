@@ -41,12 +41,12 @@ Install VenGO and it's dependencies
 
 #### With wget
 ```
-wget --no-check-certificate https://raw.github.com/DamnWidget/VenGO/master/install.sh -O - | sh
+wget --no-check-certificate https://raw.github.com/DamnWidget/VenGO/master/install.sh -O - | bash
 ```
 
 #### With curl
 ```
-curl -L https://raw.github.com/DamnWidget/VenGO/master/install.sh | sh
+curl -L https://raw.github.com/DamnWidget/VenGO/master/install.sh | bash
 ```
 
 ### 2 Enable the vengo application in your shell

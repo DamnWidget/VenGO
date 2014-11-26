@@ -34,25 +34,7 @@ function vengo {
             echo -e "VenGO, Virtual Golang Environment builder `Ok`v$version`Reset`"
             return 0
         elif [ "$command" = "vengo-uninstall" ]; then
-            echo -ne "this will uninstall VenGO and `Fail`remove`Reset` all your Go "
-            echo -n "virtual environments "
-
-            while true; do
-                #statements
-                read -p "are you sure? [y/n] " answer
-                case $answer in
-                    [Yy]*)
-                        vengo_uninstall
-                        break
-                    ;;
-                    [Nn]*)
-                        return 0
-                    ;;
-                    *)
-                        echo "Please answer yes or no."
-                    ;;
-                esac
-            done
+            vengo_uninstall
             return 0
         elif [ "$command" = "activate" ]; then
             shift

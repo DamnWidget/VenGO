@@ -1,5 +1,3 @@
-// +build clean
-
 /*
    Copyright (C) 2014  Oscar Campos <oscar.campos@member.fsf.org>
 

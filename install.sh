@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Copyright (C) 2014  Oscar Campos <oscar.campos@member.fsf.org>
 
@@ -36,7 +36,7 @@ REPOSITORY='github.com/DamnWidget/VenGO'
 
 [ "$GIT" = "" ] && {
     echo "Git can't be found in your system"
-    echo -n "  ${OK}suggestion${RESET}: run '"
+    echo -ne "  ${OK}suggestion${RESET}: run '"
     [ x$(uname) = "xLinux" ] && {
         [ x$(which apt-get) != "x" ] && {
             echo "apt-get install git' to install it"
@@ -52,14 +52,14 @@ REPOSITORY='github.com/DamnWidget/VenGO'
 
 echo -n "Getting sources... "
 $GIT clone https://$REPOSITORY $WORKDIR 2> /dev/null
-echo "${OK}✔${RESET}"
+echo -e "${OK}✔${RESET}"
 
 echo -n "Installing tools..."
 $GO get $REPOSITORY/applications/...
-for tool in "install" "uninstall" "list" "lsenvs" "mkenv" "rmenv"; do
+for tool in "install" "uninstall" "list" "lsenvs" "mkenv" "rmenv" "cleaner"; do
     mv $GOPATH/bin/$tool $WORKDIR/bin/
 done
-echo "${OK}✔${RESET}"
+echo -e "${OK}✔${RESET}"
 
 echo -n "Installing binaries into $DESTDIR..."
 mkdir -p $DESTDIR/scripts
@@ -67,9 +67,9 @@ mv $WORKDIR/bin $DESTDIR/
 mv $WORKDIR/env/tpl $DESTDIR/scripts/
 mv $WORKDIR/VERSION $DESTDIR/
 rm -Rf $WORKDIR
-echo "${OK}✔${RESET}"
+echo -e "${OK}✔${RESET}"
 
 echo ""
-echo "${OK}VenGO is now installed in your system{RESET}"
+echo -e "${OK}VenGO is now installed in your system${RESET}"
 echo "add 'source ${HOME}/.VenGO/bin/vengo' to your .bashrc or .profile to activate it"
 echo "you can also do '. ${HOME}/.VenGO/bin/vengo' to start using it right now"
