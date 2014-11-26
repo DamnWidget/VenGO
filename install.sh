@@ -55,8 +55,8 @@ $GIT clone https://$REPOSITORY $WORKDIR 2> /dev/null
 echo "${OK}✔${RESET}"
 
 echo -n "Installing tools..."
+$GO get $REPOSITORY/applications/...
 for tool in "install" "uninstall" "list" "lsenvs" "mkenv" "rmenv"; do
-    $GO get $REPOSITORY/applications/$tool
     mv $GOPATH/bin/$tool $WORKDIR/bin/
 done
 echo "${OK}✔${RESET}"
