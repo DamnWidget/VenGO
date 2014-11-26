@@ -160,6 +160,10 @@ var _ = Describe("Commands", func() {
 					Expect(os.MkdirAll(filepath.Join(cache.CacheDirectory(), "go1.1"), 0755)).To(Succeed())
 					Expect(os.MkdirAll(filepath.Join(cache.CacheDirectory(), "go1.2.1"), 0755)).To(Succeed())
 					Expect(os.MkdirAll(filepath.Join(cache.CacheDirectory(), "1.3.3"), 0755)).To(Succeed())
+					Expect(ioutil.WriteFile(filepath.Join(cache.CacheDirectory(), "1.3.3", ".vengo-manifest"), []byte{}, 0644)).To(Succeed())
+					Expect(ioutil.WriteFile(filepath.Join(cache.CacheDirectory(), "go1.2.1", ".vengo-manifest"), []byte{}, 0644)).To(Succeed())
+					Expect(ioutil.WriteFile(filepath.Join(cache.CacheDirectory(), "go1.1", ".vengo-manifest"), []byte{}, 0644)).To(Succeed())
+					Expect(ioutil.WriteFile(filepath.Join(cache.CacheDirectory(), "go1", ".vengo-manifest"), []byte{}, 0644)).To(Succeed())
 				})
 
 				Context("Asking for both lists", func() {
