@@ -33,6 +33,7 @@ type Package struct {
 	Name      string
 	Url       string
 	Installed bool
+	Vcs       string
 }
 
 // create a new package and returns it's address back

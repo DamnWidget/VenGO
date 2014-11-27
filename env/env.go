@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"text/template"
@@ -149,7 +150,36 @@ func (e *Environment) Install(ver string) error {
 
 // return back a list of packages installed in the environment
 func (e *Environment) Packages() ([]*Package, error) {
-	return nil, nil
+	envPath := os.Getenv("VENGO_ENV")
+	if envPath == "" {
+		return nil, fmt.Errorf("VENGO_ENV environment variable is not set")
+	}
+	packages := []*Package{}
+	if err := filepath.Walk(
+		filepath.Join(envPath, "src"),
+		func(walkPath string, info os.FileInfo, err error) error {
+			fmt.Println(walkPath)
+			if !info.IsDir() {
+				return nil
+			}
+			for _, vcs := range vcsTypes {
+				_, err := os.Stat(filepath.Join(walkPath, vcs.name))
+				if err == nil {
+					options := func(p *Package) {
+						p.Name = path.Base(walkPath)
+						p.Url = walkPath
+						p.Installed = true
+						p.Vcs = vcs.name
+					}
+					packages = append(packages, NewPackage(options))
+				}
+			}
+			return nil
+		},
+	); err != nil {
+		return nil, err
+	}
+	return packages, nil
 }
 
 // environment manifest structure
