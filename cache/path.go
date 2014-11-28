@@ -66,7 +66,7 @@ func downloadAndExtract(ver, url, expected_sha1 string) error {
 
 	if resp.StatusCode != 200 {
 		if resp.StatusCode == 400 {
-			log.Fatal("Version %s can't be found!\n", ver)
+			log.Fatalf("Version %s can't be found!\n", ver)
 		}
 		return fmt.Errorf("%s", resp.Status)
 	}

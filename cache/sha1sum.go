@@ -61,7 +61,7 @@ func generateManifest(ver string) error {
 	fileName := filepath.Join(versionPath, ".vengo-manifest")
 	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
-		return fmt.Errorf("while generating manifest:", err)
+		return fmt.Errorf("while generating manifest: %s", err)
 	}
 	file.WriteString(fmt.Sprintf("%s\n", strings.Join(manifest, "\n")))
 	file.Close()
