@@ -86,7 +86,7 @@ func (pm *packageManifest) getVcs(env *Environment) error {
 	}
 	defer func() { os.Chdir(currdir) }()
 	for _, vcs := range vcsTypes {
-		vcsdir := fmt.Sprintf(".%s", vcs)
+		vcsdir := fmt.Sprintf(".%s", vcs.name)
 		if fi, err := os.Stat(filepath.Join(packagePath, vcsdir)); err == nil {
 			if fi.IsDir() {
 				pm.vcs = vcs

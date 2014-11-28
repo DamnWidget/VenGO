@@ -27,6 +27,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"text/template"
 
 	"github.com/DamnWidget/VenGO/cache"
@@ -149,25 +150,29 @@ func (e *Environment) Install(ver string) error {
 }
 
 // return back a list of packages installed in the environment
-func (e *Environment) Packages() ([]*Package, error) {
+func (e *Environment) Packages(environment ...string) ([]*Package, error) {
 	envPath := os.Getenv("VENGO_ENV")
+	if len(environment) > 0 {
+		envPath = environment[0]
+	}
 	if envPath == "" {
 		return nil, fmt.Errorf("VENGO_ENV environment variable is not set")
 	}
+	basePath := filepath.Join(envPath, "src")
 	packages := []*Package{}
 	if err := filepath.Walk(
-		filepath.Join(envPath, "src"),
+		basePath,
 		func(walkPath string, info os.FileInfo, err error) error {
-			fmt.Println(walkPath)
 			if !info.IsDir() {
 				return nil
 			}
 			for _, vcs := range vcsTypes {
-				_, err := os.Stat(filepath.Join(walkPath, vcs.name))
+				_, err := os.Stat(filepath.Join(walkPath, "."+vcs.name))
 				if err == nil {
 					options := func(p *Package) {
-						p.Name = path.Base(walkPath)
-						p.Url = walkPath
+						splitPaths := strings.Split(walkPath, basePath+"/")
+						p.Name = path.Base(splitPaths[1])
+						p.Url = splitPaths[1]
 						p.Installed = true
 						p.Vcs = vcs.name
 					}

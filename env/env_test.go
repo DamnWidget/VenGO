@@ -13,7 +13,7 @@ import (
 	"github.com/DamnWidget/VenGO/env"
 )
 
-var RunSlowTests = true
+var RunSlowTests = false
 
 var _ = Describe("Env", func() {
 
@@ -114,24 +114,52 @@ var _ = Describe("Env", func() {
 			})
 		})
 
-		// Context("When VENGO_ENV is set but there are no packages", func() {
-		// 	BeforeEach(func() {
-		// 		os.MkdirAll(filepath.Join(os.TempDir(), "goTest", "src"), 0755)
-		// 	})
+		Context("When VENGO_ENV is set but there are no packages", func() {
+			var tmpDir string
+			BeforeEach(func() {
+				tmpDir = filepath.Join(os.TempDir(), "goTest")
+				os.MkdirAll(filepath.Join(tmpDir, "src"), 0755)
+			})
 
-		// 	AfterEach(func() {
-		// 		os.RemoveAll(filepath.Join(os.TempDir(), "goTest"))
-		// 	})
+			AfterEach(func() {
+				os.RemoveAll(tmpDir)
+			})
 
-		// 	It("Should return an empty slice of packages", func() {
-		// 		os.Setenv("VENGO_ENV", os.TempDir())
-		// 		e := env.NewEnvironment("goTest", "(goTest)")
-		// 		p, err := e.Packages()
-		// 		fmt.Println(p)
-		// 		Expect(p).To(BeNil())
-		// 		Expect(err).To(HaveOccurred())
-		// 		Expect(err).To(Equal(fmt.Errorf("VENGO_ENV environment variable is not set")))
-		// 	})
-		// })
+			It("Should return an empty slice of packages", func() {
+				e := env.NewEnvironment("goTest", "(goTest)")
+				p, err := e.Packages(tmpDir)
+				Expect(p).ToNot(BeNil())
+				Expect(err).ToNot(HaveOccurred())
+				Expect(len(p)).To(Equal(0))
+			})
+		})
+
+		Context("When VENGO_ENV is set and there are some packages", func() {
+			var tmpDir string
+			BeforeEach(func() {
+				tmpDir = filepath.Join(os.TempDir(), "goTest")
+				os.MkdirAll(filepath.Join(tmpDir, "src", "github.com", "DamnWidget", "VenGO", ".git"), 0755)
+				os.MkdirAll(filepath.Join(tmpDir, "src", "gopkg.io", "VenGO", ".hg"), 0755)
+			})
+
+			AfterEach(func() {
+				os.RemoveAll(tmpDir)
+			})
+
+			It("Should return a *Package slice with one element", func() {
+				e := env.NewEnvironment("goTest", "(goTest))")
+				p, err := e.Packages(tmpDir)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(len(p)).To(Equal(2))
+				Expect(p[0].Name).To(Equal("VenGO"))
+				Expect(p[0].Url).To(Equal("github.com/DamnWidget/VenGO"))
+				Expect(p[0].Installed).To(BeTrue())
+				Expect(p[0].Vcs).To(Equal("git"))
+				Expect(p[1].Name).To(Equal("VenGO"))
+				Expect(p[1].Url).To(Equal("gopkg.io/VenGO"))
+				Expect(p[1].Installed).To(BeTrue())
+				Expect(p[1].Vcs).To(Equal("hg"))
+			})
+		})
 	})
 })
