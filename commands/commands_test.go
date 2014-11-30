@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -512,8 +513,6 @@ var _ = Describe("Commands", func() {
 			Expect(e.Environment).To(Equal("goTest"))
 			Expect(e.Name).To(Equal("goTest"))
 			Expect(e.Force).To(BeFalse())
-			Expect(e.Mode).To(Equal(commands.Soft))
-			Expect(e.Verbose).To(BeFalse())
 		})
 
 		It("Should fail if environment is not passed an none is active", func() {
@@ -521,7 +520,7 @@ var _ = Describe("Commands", func() {
 
 			Expect(e).ToNot(BeNil())
 			Expect(e.Err()).To(HaveOccurred())
-			Expect(e.Err()).To(Equal(errors.New("there is no environment active and none has been specified")))
+			Expect(e.Err()).To(Equal(errors.New("there is no active environment and none has been specified")))
 		})
 
 		It("Should prefill missing environemnt and name if an environment is active and none has been specified", func() {
@@ -550,13 +549,21 @@ var _ = Describe("Commands", func() {
 	})
 
 	Describe("LoadEnvironment", func() {
+		envs_path := cache.ExpandUser(filepath.Join("~", ".VenGO"))
 		BeforeEach(func() {
-			name := cache.ExpandUser("~/.VenGO/goTest")
-			prompt := "[{(goTest)}] "
-			e := env.NewEnvironment(name, prompt)
-			err := e.Generate()
+			os.Setenv("VENGO_HOME", "")
+			rename := filepath.Join(envs_path, "..", "Real.VenGO")
+			Expect(os.Rename(envs_path, rename)).To(Succeed())
+			Expect(os.MkdirAll(envs_path, 0755)).To(Succeed())
 
-			Expect(err).ToNot(HaveOccurred())
+			e := env.NewEnvironment("goTest", "[{(goTest)}]")
+			Expect(e.Generate()).To(Succeed())
+		})
+
+		AfterEach(func() {
+			rename := filepath.Join(envs_path, "..", "Real.VenGO")
+			Expect(os.RemoveAll(envs_path)).To(Succeed())
+			Expect(os.Rename(rename, envs_path)).To(Succeed())
 		})
 
 		It("Should return back a complete loaded environment", func() {
@@ -572,6 +579,40 @@ var _ = Describe("Commands", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(environment).ToNot(BeNil())
 			Expect(environment.PS1).To(Equal("[{(goTest)}]"))
+		})
+	})
+
+	Describe("Export.Exists", func() {
+		var fileName string
+		BeforeEach(func() {
+			file, err := ioutil.TempFile("", "VenGO.manifest-")
+
+			Expect(err).ToNot(HaveOccurred())
+			defer file.Close()
+			file.Write([]byte{})
+			fileName = file.Name()
+		})
+
+		AfterEach(func() {
+			Expect(os.RemoveAll(fileName)).To(Succeed())
+		})
+
+		It("Should return true as the file exists", func() {
+			options := func(e *commands.Export) {
+				e.Environment = path.Dir(fileName)
+				e.Name = path.Base(fileName)
+			}
+			e := commands.NewExport(options)
+			Expect(e.Exists()).To(BeTrue())
+		})
+
+		It("SHould fail as the file doesn't exists", func() {
+			options := func(e *commands.Export) {
+				e.Environment = path.Dir(fileName)
+				e.Name = "dontExists.manifest"
+			}
+			e := commands.NewExport(options)
+			Expect(e.Exists()).To(BeFalse())
 		})
 	})
 })

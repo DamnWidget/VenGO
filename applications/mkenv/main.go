@@ -99,10 +99,10 @@ func buildCommandListOptions() []func(*commands.Mkenv) {
 // display help message
 func displayHelp() {
 	fmt.Println(fmt.Sprintf(`%s: vengo mkenv [options] env_name
-    -f, --force             Force Reinstallation if environment exists
-    -p, --prompt            Environment prompt to be used
-    -g, --go                Go version to be used (tip by default)
+    -f, --force                 Force Reinstallation if environment exists
+    -p, --prompt                Environment prompt to be used
+    -g, --go                    Go version to be used (tip by default)
 
-    -h, --help              Display this message
+    -h, --help                  Display this message
     `, utils.Ok("Usage")))
 }

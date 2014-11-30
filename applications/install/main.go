@@ -68,6 +68,7 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println(data)
+	os.Exit(0)
 }
 
 // build the command list options based in the passed flags

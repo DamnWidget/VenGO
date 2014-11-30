@@ -99,11 +99,11 @@ func buildCommandListOptions() []func(*commands.List) {
 // display help message
 func displayHelp() {
 	fmt.Println(fmt.Sprintf(`%s: vengo list [options]
-    -a, --all	 			Display installed and available Go versions
-    -i, --installed			Display installed go versions
-    -n, --non-installed			Display available go versions
-    -j, --json				Display the results in JSON format
+    -a, --all	 		Display installed and available Go versions
+    -i, --installed		Display installed go versions
+    -n, --non-installed		Display available go versions
+    -j, --json			Display the results in JSON format
 
-    -h, --help				Display this message
+    -h, --help			Display this message
 	`, utils.Ok("Usage")))
 }

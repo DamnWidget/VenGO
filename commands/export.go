@@ -22,6 +22,7 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -35,23 +36,12 @@ import (
 	"github.com/DamnWidget/VenGO/utils"
 )
 
-// ExportMode type
-type ExportMode int
-
-// possible export modes
-const (
-	Soft ExportMode = iota
-	Hard
-	Pretend
-)
-
 // export command
 type Export struct {
 	Environment string
 	Name        string
 	Force       bool
-	Mode        ExportMode
-	Verbose     bool
+	Prettify    bool
 	err         error
 }
 
@@ -67,20 +57,11 @@ func NewExport(options ...func(e *Export)) *Export {
 
 // implements the Runner interface executing the environment export
 func (e *Export) Run() (string, error) {
-	switch e.Mode {
-	case Soft:
-		return e.softExport()
-	// case Hard:
-	// 	return e.hardExport()
-	// case Pretend:
-	// 	return e.pretendExport()
-	default:
-		return "", errors.New("Export.Mode is not a valid mode")
-	}
+	return e.envExport()
 }
 
 // export the given environment using a VenGO.manifest file
-func (e *Export) softExport() (string, error) {
+func (e *Export) envExport() (string, error) {
 	fmt.Print("Loading environment... ")
 	environment, err := e.LoadEnvironment()
 	if err != nil {
@@ -88,21 +69,32 @@ func (e *Export) softExport() (string, error) {
 		return "", err
 	}
 	fmt.Println(utils.Ok("✔"))
-
 	fmt.Print("Generating manifest... ")
 	environManifest, err := environment.Manifest()
 	if err != nil {
 		fmt.Println(utils.Fail("✖"))
 		return "", err
 	}
-	result, err := environManifest.Generate()
+	manifest, err := environManifest.Generate()
 	if err != nil {
 		fmt.Println(utils.Fail("✖"))
 		return "", err
 	}
 	fmt.Println(utils.Ok("✔"))
+	if e.Prettify {
+		buffer := new(bytes.Buffer)
+		json.Indent(buffer, manifest, "", "\t")
+		manifest = buffer.Bytes()
+	}
+	fmt.Printf("Writing manifest into %s... ", environment.VenGO_PATH)
+	err = ioutil.WriteFile(
+		filepath.Join(environment.VenGO_PATH, e.Name), manifest, 0644)
+	if err != nil {
+		fmt.Println(utils.Fail("✖"))
+	}
+	fmt.Println(utils.Ok("✔"))
 
-	return result, err
+	return "", err
 }
 
 // normalize an export configuration, if there is no environment, try to detect
@@ -114,7 +106,7 @@ func (e *Export) normalize() {
 			e.Environment = env
 		} else {
 			e.err = errors.New(
-				"there is no environment active and none has been specified")
+				"there is no active environment and none has been specified")
 			return
 		}
 	}
@@ -142,4 +134,10 @@ func (e *Export) LoadEnvironment() (*env.Environment, error) {
 		re.FindAllString(string(byteLines[86]), 1)[0], `"`), " ")
 	environment := env.NewEnvironment(path.Base(e.Environment), prompt)
 	return environment, nil
+}
+
+// check if a manifest already exists for the given environment
+func (e *Export) Exists() bool {
+	_, err := os.Stat(filepath.Join(e.Environment, e.Name))
+	return err == nil
 }

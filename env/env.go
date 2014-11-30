@@ -21,7 +21,6 @@
 package env
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -72,6 +71,13 @@ func (e *Environment) Generate() error {
 	if os.Getenv("VENGO_HOME") != "" {
 		environTemplate = filepath.Join(
 			os.Getenv("VENGO_HOME"), "scripts", "tpl", "activate")
+	} else {
+		_, caller, _, ok := runtime.Caller(1)
+		if ok {
+			// we are running in a test environment
+			environTemplate = filepath.Join(
+				path.Dir(caller), "..", "env", environTemplate)
+		}
 	}
 	file, err := e.checkPath()
 	if err != nil {
@@ -208,52 +214,4 @@ func (e *Environment) Manifest() (*envManifest, error) {
 		em.GoVersion = path.Base(lib)
 	}
 	return NewEnvManifest(e, general, goVersion)
-}
-
-// environment manifest structure
-type envManifest struct {
-	Name      string             `json:"environment_name"`
-	Path      string             `json:"environment_path"`
-	GoVersion string             `json:"environment_go_version"`
-	Packages  []*packageManifest `json:"environment_packages"`
-}
-
-// creates a new envManifest
-func NewEnvManifest(env *Environment, options ...func(em *envManifest)) (*envManifest, error) {
-	em := new(envManifest)
-	for _, option := range options {
-		option(em)
-	}
-	if err := em.getPackages(env); err != nil {
-		return nil, err
-	}
-	return em, nil
-}
-
-// detect all the environment manifest packages and populate its own manifests
-func (em *envManifest) getPackages(env *Environment) error {
-	packages, err := env.Packages()
-	if err != nil {
-		return err
-	}
-	for _, p := range packages {
-		name := func(pm *packageManifest) { pm.Name = p.Name }
-		url := func(pm *packageManifest) { pm.Url = p.Url }
-		pm, err := NewPackageManifest(env, name, url)
-		if err != nil {
-			return err
-		}
-		em.Packages = append(em.Packages, pm)
-	}
-
-	return nil
-}
-
-// generate the environment manifest for exports/import
-func (em *envManifest) Generate() (string, error) {
-	b, err := json.Marshal(em)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
 }

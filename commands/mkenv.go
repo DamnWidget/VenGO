@@ -23,10 +23,10 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/DamnWidget/VenGO/cache"
 	"github.com/DamnWidget/VenGO/env"
 	"github.com/DamnWidget/VenGO/utils"
 )
@@ -53,12 +53,12 @@ func NewMkenv(options ...func(i *Mkenv)) *Mkenv {
 
 // implements the Runner interface creating the new virtual environment
 func (m *Mkenv) Run() (string, error) {
-	fmt.Print("Checking intalled go versions... ")
+	fmt.Fprint(cache.Output, "Checking intalled go versions... ")
 	if err := m.checkInstalled(); err != nil {
-		log.Println(utils.Fail("✖"))
+		fmt.Fprintln(cache.Output, utils.Fail("✖"))
 		return "", err
 	}
-	fmt.Println(utils.Ok("✔"))
+	fmt.Fprintln(cache.Output, utils.Ok("✔"))
 
 	newEnv := env.NewEnvironment(m.Name, m.Prompt)
 	if newEnv.Exists() && !m.Force {

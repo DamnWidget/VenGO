@@ -71,8 +71,8 @@ func buildCommandListOptions() []func(*commands.EnvironmentsList) {
 // display help message
 func displayHelp() {
 	fmt.Println(fmt.Sprintf(`%s: vengo lsenvs [options]
-    -j, --json              Display the results in JSON format
+    -j, --json                  Display the results in JSON format
 
-    -h, --help              Display this message
+    -h, --help                  Display this message
     `, utils.Ok("Usage")))
 }

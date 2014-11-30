@@ -22,8 +22,6 @@ package env
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/DamnWidget/VenGO/utils"
 )
@@ -52,47 +50,4 @@ func (p *Package) String() string {
 		check = utils.Fail("✖")
 	}
 	return fmt.Sprintf(`    %s(%s) %s`, p.Name, p.Url, check)
-}
-
-// package manifest structure
-type packageManifest struct {
-	Name string   `json:"package_name"`
-	Url  string   `json:"package_url"`
-	Vcs  *vcsType `json:"package_vcs,omitempty"`
-}
-
-// creates a new packageManifest
-func NewPackageManifest(env *Environment, options ...func(pm *packageManifest)) (*packageManifest, error) {
-
-	pm := new(packageManifest)
-	for _, option := range options {
-		option(pm)
-	}
-	if err := pm.getVcs(env); err != nil {
-		return nil, err
-	}
-	return pm, nil
-}
-
-// detect the version control system used for a go package and assign it
-func (pm *packageManifest) getVcs(env *Environment) error {
-	packagePath := filepath.Join(env.Gopath, "src", pm.Url)
-	currdir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	if err := os.Chdir(packagePath); err != nil {
-		return err
-	}
-	defer func() { os.Chdir(currdir) }()
-	for _, vcs := range vcsTypes {
-		vcsdir := fmt.Sprintf(".%s", vcs.name)
-		if fi, err := os.Stat(filepath.Join(packagePath, vcsdir)); err == nil {
-			if fi.IsDir() {
-				pm.Vcs = vcs
-				return nil
-			}
-		}
-	}
-	return fmt.Errorf("%s is using an unknown version control system", pm.Name)
 }

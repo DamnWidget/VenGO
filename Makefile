@@ -21,7 +21,7 @@ default: test
 
 .PHONY: default
 
-test: cache_test env_test
+test: cache_test env_test commands_test
 
 cache_test:
 	cd cache && ginkgo -r --randomizeAllSpecs --failOnPending --randomizeSuites --trace --race

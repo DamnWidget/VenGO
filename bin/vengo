@@ -115,6 +115,8 @@ Where command is one of the list below:
   `Ok`lsenvs`Reset`             List available Virtual Go Environments
   `Ok`mkenv`Reset`              Create a new Virtual Go Environment
   `Ok`rmenv`Reset`              Remove a Virtual Go Environment
+  `Ok`export`Reset`             Export an environment into a manifest file
+  `Ok`import`Reset`             Import a previously exported environment from a file
   `Ok`vengo-uninstall`Reset`    Uninstall VenGO and remove all the Virtual Go Environments
 "
     fi

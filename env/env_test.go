@@ -180,10 +180,10 @@ var _ = Describe("Env", func() {
 			p := env.NewPackage(options)
 
 			Expect(p).ToNot(BeNil())
-			Expect(p.String()).To(Equal(fmt.Sprintf("    %s(%s) %s", p.Name, p.Url, utils.Ok("✔"))))
+			Expect(fmt.Sprint(p)).To(Equal(fmt.Sprintf("    %s(%s) %s", p.Name, p.Url, utils.Ok("✔"))))
 			p.Installed = false
 
-			Expect(p.String()).To(Equal(fmt.Sprintf("    %s(%s) %s", p.Name, p.Url, utils.Fail("✖"))))
+			Expect(fmt.Sprint(p)).To(Equal(fmt.Sprintf("    %s(%s) %s", p.Name, p.Url, utils.Fail("✖"))))
 		})
 	})
 
@@ -269,9 +269,9 @@ var _ = Describe("Env", func() {
 				jsonString, err := manifest.Generate()
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(jsonString).To(Equal(fmt.Sprintf(
+				Expect(jsonString).To(Equal([]byte(fmt.Sprintf(
 					`{"environment_name":"goTest","environment_path":"%s","environment_go_version":"go1.3.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_vcs":"hg"}]}`,
-					filepath.Join(cache.VenGO_PATH, "goTest"))))
+					filepath.Join(cache.VenGO_PATH, "goTest")))))
 
 				os.RemoveAll(filepath.Join(cache.VenGO_PATH, "goTest", "src"))
 				os.Setenv("VENGO_ENV", "")

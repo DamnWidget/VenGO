@@ -63,7 +63,7 @@ func CacheDonwloadMercurial(ver string, f ...bool) error {
 		return err
 	}
 	var toCheck string
-	if index == 0xDEADBEEF {
+	if index == 0xBEDEAD {
 		toCheck = "tip"
 	} else {
 		toCheck = availableVersions[index]
@@ -151,7 +151,7 @@ func copySource(ver string) error {
 
 func lookupVersion(ver string, availableVersions []string) (index int) {
 	if ver == "tip" {
-		return 0xDEADBEEF
+		return 0xBEDEAD
 	}
 
 	if !strings.HasPrefix(ver, "go") && !strings.HasPrefix(ver, "release") {
