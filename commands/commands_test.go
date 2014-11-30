@@ -2,6 +2,7 @@ package commands_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/DamnWidget/VenGO/cache"
 	"github.com/DamnWidget/VenGO/commands"
+	"github.com/DamnWidget/VenGO/env"
 	"github.com/DamnWidget/VenGO/utils"
 )
 
@@ -494,6 +496,82 @@ var _ = Describe("Commands", func() {
 			_, err := m.Run()
 			Expect(err).To(HaveOccurred())
 			Expect(commands.IsNotInstalledError(err)).To(BeTrue())
+		})
+	})
+
+	Describe("NewExport", func() {
+		It("Creates and return back a configured Export command", func() {
+			options := func(e *commands.Export) {
+				e.Environment = "goTest"
+				e.Name = "goTest"
+			}
+			e := commands.NewExport(options)
+
+			Expect(e).ToNot(BeNil())
+			Expect(e.Err()).ToNot(HaveOccurred())
+			Expect(e.Environment).To(Equal("goTest"))
+			Expect(e.Name).To(Equal("goTest"))
+			Expect(e.Force).To(BeFalse())
+			Expect(e.Mode).To(Equal(commands.Soft))
+			Expect(e.Verbose).To(BeFalse())
+		})
+
+		It("Should fail if environment is not passed an none is active", func() {
+			e := commands.NewExport()
+
+			Expect(e).ToNot(BeNil())
+			Expect(e.Err()).To(HaveOccurred())
+			Expect(e.Err()).To(Equal(errors.New("there is no environment active and none has been specified")))
+		})
+
+		It("Should prefill missing environemnt and name if an environment is active and none has been specified", func() {
+			os.Setenv("VENGO_ENV", "goTest")
+			e := commands.NewExport()
+
+			Expect(e).ToNot(BeNil())
+			Expect(e.Err()).ToNot(HaveOccurred())
+			Expect(e.Environment).To(Equal("goTest"))
+			Expect(e.Name).To(Equal("VenGO.manifest"))
+			os.Unsetenv("VENGO_ENV")
+		})
+
+		It("Should not prefill the environment when an environment is specified even is VENGO_ENV is set", func() {
+			os.Setenv("VENGO_ENV", "nonGetThis")
+			options := func(e *commands.Export) {
+				e.Environment = "goTest"
+			}
+			e := commands.NewExport(options)
+
+			Expect(e).ToNot(BeNil())
+			Expect(e.Err()).NotTo(HaveOccurred())
+			Expect(e.Environment).To(Equal("goTest"))
+			os.Unsetenv("VENGO_ENV")
+		})
+	})
+
+	Describe("LoadEnvironment", func() {
+		BeforeEach(func() {
+			name := cache.ExpandUser("~/.VenGO/goTest")
+			prompt := "[{(goTest)}] "
+			e := env.NewEnvironment(name, prompt)
+			err := e.Generate()
+
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("Should return back a complete loaded environment", func() {
+			options := func(e *commands.Export) {
+				e.Environment = cache.ExpandUser("~/.VenGO/goTest")
+			}
+			e := commands.NewExport(options)
+
+			Expect(e).ToNot(BeNil())
+			Expect(e.Err()).ToNot(HaveOccurred())
+			environment, err := e.LoadEnvironment()
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(environment).ToNot(BeNil())
+			Expect(environment.PS1).To(Equal("[{(goTest)}]"))
 		})
 	})
 })

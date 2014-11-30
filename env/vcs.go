@@ -20,7 +20,17 @@
 
 package env
 
-import "github.com/DamnWidget/VenGO/utils"
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/DamnWidget/VenGO/utils"
+)
+
+// testable type
+type T struct {
+	vcs *vcsType `json:"vcs"`
+}
 
 // vcs type structure
 type vcsType struct {
@@ -80,6 +90,34 @@ var vcsTypes = []*vcsType{
 	mercurialVcs,
 	bazaarVcs,
 	svnVcs,
+}
+
+// enable Unmarshaling of vcsType type
+func (vcs *vcsType) UnmasrshalJSON(b []byte) (err error) {
+	var s string
+
+	if err = json.Unmarshal(b, &s); err == nil {
+		switch s {
+		case "git":
+			vcs = gitVcs
+		case "hg":
+			vcs = mercurialVcs
+		case "bzr":
+			vcs = bazaarVcs
+		case "svn":
+			vcs = svnVcs
+		default:
+			return fmt.Errorf("%s is not a valid vcs type")
+		}
+	} else {
+		return err
+	}
+	return
+}
+
+// enable Marshaling of vcsType type
+func (vcs *vcsType) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`"%s"`, vcs.name)), nil
 }
 
 // clone the repo in an scpecific revision, tag or commit

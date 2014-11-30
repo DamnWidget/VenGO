@@ -21,6 +21,7 @@
 package env
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -50,7 +51,7 @@ func NewEnvironment(name, prompt string) *Environment {
 	return &Environment{
 		Goroot:     filepath.Join(VenGO_PATH, "lib"),
 		Gotooldir:  filepath.Join(VenGO_PATH, "lib", "pkg", "tool", osArch),
-		Gopath:     filepath.Join(VenGO_PATH),
+		Gopath:     VenGO_PATH,
 		PS1:        prompt,
 		VenGO_PATH: VenGO_PATH,
 	}
@@ -163,6 +164,10 @@ func (e *Environment) Packages(environment ...string) ([]*Package, error) {
 	if err := filepath.Walk(
 		basePath,
 		func(walkPath string, info os.FileInfo, err error) error {
+			if err != nil {
+				fmt.Printf("%s ignored because error: %s\n", walkPath, err)
+				return nil
+			}
 			if !info.IsDir() {
 				return nil
 			}
@@ -187,12 +192,29 @@ func (e *Environment) Packages(environment ...string) ([]*Package, error) {
 	return packages, nil
 }
 
+// generates an environment manifest from a configured environment
+func (e *Environment) Manifest() (*envManifest, error) {
+	general := func(em *envManifest) {
+		em.Name = path.Base(e.VenGO_PATH)
+		em.Path = e.VenGO_PATH
+		em.Packages = []*packageManifest{}
+	}
+	lib, err := os.Readlink(e.Goroot)
+	if err != nil {
+		return nil, err
+	}
+	goVersion := func(em *envManifest) {
+		em.GoVersion = path.Base(lib)
+	}
+	return NewEnvManifest(e, general, goVersion)
+}
+
 // environment manifest structure
 type envManifest struct {
-	name      string
-	path      string
-	goVersion string
-	packages  []*packageManifest
+	Name      string             `json:"environment_name"`
+	Path      string             `json:"environment_path"`
+	GoVersion string             `json:"environment_go_version"`
+	Packages  []*packageManifest `json:"environment_packages"`
 }
 
 // creates a new envManifest
@@ -214,14 +236,23 @@ func (em *envManifest) getPackages(env *Environment) error {
 		return err
 	}
 	for _, p := range packages {
-		name := func(pm *packageManifest) { pm.name = p.Name }
-		url := func(pm *packageManifest) { pm.url = p.Url }
+		name := func(pm *packageManifest) { pm.Name = p.Name }
+		url := func(pm *packageManifest) { pm.Url = p.Url }
 		pm, err := NewPackageManifest(env, name, url)
 		if err != nil {
 			return err
 		}
-		em.packages = append(em.packages, pm)
+		em.Packages = append(em.Packages, pm)
 	}
 
 	return nil
+}
+
+// generate the environment manifest for exports/import
+func (em *envManifest) Generate() (string, error) {
+	b, err := json.Marshal(em)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }

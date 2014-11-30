@@ -21,6 +21,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/DamnWidget/VenGO/cache"
@@ -54,7 +55,7 @@ func NewInstall(options ...func(i *Install)) *Install {
 }
 
 // implements the Runner interface executing the required installation
-func (i *Install) Run() (result string, err error) {
+func (i *Install) Run() (string, error) {
 	switch i.Source {
 	case Mercurial:
 		return i.fromMercurial()
@@ -63,7 +64,7 @@ func (i *Install) Run() (result string, err error) {
 	case Binary:
 		return i.fromBinary()
 	default:
-		return "", fmt.Errorf("Intall.Source is not a valid source")
+		return "", errors.New("Intall.Source is not a valid source")
 	}
 }
 

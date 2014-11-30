@@ -40,21 +40,21 @@ func AlreadyCompiled(ver string) bool {
 	if _, err := os.Stat(manifest); err != nil {
 		return false
 	}
-	fmt.Print("Checking manifest integrity... ")
+	fmt.Fprint(Output, "Checking manifest integrity... ")
 	if err := CheckManifestIntegrity(manifest); err != nil {
 		fmt.Println(utils.Fail("✖"))
 		log.Println(err)
 		return false
 	}
-	fmt.Println(utils.Ok("✔"))
+	fmt.Fprintln(Output, utils.Ok("✔"))
 	return true
 }
 
 // compile a given version of go in the cache
 func Compile(ver string, verbose bool) error {
-	fmt.Print("Compiling... ")
+	fmt.Fprint(Output, "Compiling... ")
 	if verbose {
-		fmt.Print("\n")
+		fmt.Fprint(Output, "\n")
 	}
 	currdir, _ := os.Getwd()
 	prefixed := false
@@ -67,7 +67,7 @@ func Compile(ver string, verbose bool) error {
 		if err := os.Chdir(
 			filepath.Join(CacheDirectory(), ver, "src")); err != nil {
 			if !verbose {
-				fmt.Println(utils.Fail("✖"))
+				fmt.Fprintln(Output, utils.Fail("✖"))
 			}
 			return err
 		}
@@ -87,21 +87,21 @@ func Compile(ver string, verbose bool) error {
 	}
 	if _, err := os.Stat(goBin); err != nil {
 		if !verbose {
-			fmt.Println(utils.Fail("✖"))
+			fmt.Fprintln(Output, utils.Fail("✖"))
 		}
-		fmt.Println(err)
+		fmt.Fprintln(Output, err)
 		return fmt.Errorf("Go %s wasn't compiled properly! %v", ver, err)
 	}
 	if !verbose {
-		fmt.Println(utils.Ok("✔"))
+		fmt.Fprintln(Output, utils.Ok("✔"))
 	}
-	fmt.Printf("Generating manifest... ")
+	fmt.Fprintf(Output, "Generating manifest... ")
 	if err := generateManifest(ver); err != nil {
 		os.RemoveAll(filepath.Join(CacheDirectory(), ver))
-		fmt.Println(utils.Fail("✖"))
+		fmt.Fprintln(Output, utils.Fail("✖"))
 		return err
 	}
-	fmt.Println(utils.Ok("✔"))
+	fmt.Fprintln(Output, utils.Ok("✔"))
 
 	return nil
 }

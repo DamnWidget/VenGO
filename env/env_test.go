@@ -2,6 +2,7 @@ package env_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/DamnWidget/VenGO/cache"
 	"github.com/DamnWidget/VenGO/env"
+	"github.com/DamnWidget/VenGO/utils"
 )
 
 var RunSlowTests = false
@@ -159,6 +161,109 @@ var _ = Describe("Env", func() {
 				Expect(p[1].Url).To(Equal("gopkg.io/VenGO"))
 				Expect(p[1].Installed).To(BeTrue())
 				Expect(p[1].Vcs).To(Equal("hg"))
+			})
+		})
+	})
+
+	Describe("String", func() {
+		It("Will return back a right formatted string", func() {
+			options := func(p *env.Package) {
+				p.Name = "GoTest"
+				p.Url = "http://golang.org"
+				p.Installed = true
+				p.Vcs = "hg"
+			}
+			p := env.NewPackage(options)
+
+			Expect(p).ToNot(BeNil())
+			Expect(p.String()).To(Equal(fmt.Sprintf("    %s(%s) %s", p.Name, p.Url, utils.Ok("✔"))))
+			p.Installed = false
+
+			Expect(p.String()).To(Equal(fmt.Sprintf("    %s(%s) %s", p.Name, p.Url, utils.Fail("✖"))))
+		})
+	})
+
+	Describe("Manifest", func() {
+		BeforeEach(func() {
+			if _, err := os.Stat(filepath.Join(cache.VenGO_PATH, "goTest")); err != nil {
+				e := env.NewEnvironment("goTest", "(goTest)")
+
+				Expect(e.Generate()).To(Succeed())
+				Expect(e.Install("1.3.2")).To(Succeed())
+			}
+		})
+
+		It("Will genrate and return back a complete configured environment manifest", func() {
+			os.Setenv("VENGO_ENV", filepath.Join(cache.VenGO_PATH, "goTest"))
+			e := env.NewEnvironment("goTest", "(goTest)")
+			os.MkdirAll(
+				filepath.Join(cache.VenGO_PATH, "goTest", "src", "test.com", "test", ".hg"),
+				0755,
+			)
+			manifest, err := e.Manifest()
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(manifest).ToNot(BeNil())
+			Expect(manifest.Name).To(Equal("goTest"))
+			Expect(manifest.Path).To(Equal(filepath.Join(cache.VenGO_PATH, "goTest")))
+			Expect(manifest.GoVersion).To(Equal("go1.3.2"))
+			Expect(manifest.Packages[0].Name).To(Equal("test"))
+			Expect(manifest.Packages[0].Url).To(Equal("test.com/test"))
+			Expect(manifest.Packages[0].Vcs).ToNot(BeNil())
+			os.RemoveAll(filepath.Join(cache.VenGO_PATH, "goTest", "src"))
+			os.Unsetenv("VENGO_ENV")
+		})
+
+		It("Will fail if the VENGO_ENV is not set", func() {
+			e := env.NewEnvironment("goTest", "(prompt)")
+			manifest, err := e.Manifest()
+
+			Expect(manifest).To(BeNil())
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(Equal(errors.New("VENGO_ENV environment variable is not set")))
+		})
+
+		It("Will return empty packages map if no package is installed", func() {
+			os.Setenv("VENGO_ENV", filepath.Join(cache.VenGO_PATH, "goTest"))
+			e := env.NewEnvironment("goTest", "prompt")
+			manifest, err := e.Manifest()
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(manifest).ToNot(BeNil())
+			Expect(manifest.Name).To(Equal("goTest"))
+			Expect(manifest.Path).To(Equal(filepath.Join(cache.VenGO_PATH, "goTest")))
+			Expect(manifest.GoVersion).To(Equal("go1.3.2"))
+			Expect(manifest.Packages).To(BeEmpty())
+			os.Unsetenv("VENGO_ENV")
+		})
+
+		Describe("envManifest.Generate", func() {
+			It("Should generate a JSON string", func() {
+				os.Setenv("VENGO_ENV", filepath.Join(cache.VenGO_PATH, "goTest"))
+				e := env.NewEnvironment("goTest", "(goTest)")
+				os.MkdirAll(
+					filepath.Join(cache.VenGO_PATH, "goTest", "src", "test.com", "test", ".hg"),
+					0755,
+				)
+				manifest, err := e.Manifest()
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(manifest).ToNot(BeNil())
+				Expect(manifest.Name).To(Equal("goTest"))
+				Expect(manifest.Path).To(Equal(filepath.Join(cache.VenGO_PATH, "goTest")))
+				Expect(manifest.GoVersion).To(Equal("go1.3.2"))
+				Expect(manifest.Packages[0].Name).To(Equal("test"))
+				Expect(manifest.Packages[0].Url).To(Equal("test.com/test"))
+				Expect(manifest.Packages[0].Vcs).ToNot(BeNil())
+				jsonString, err := manifest.Generate()
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(jsonString).To(Equal(fmt.Sprintf(
+					`{"environment_name":"goTest","environment_path":"%s","environment_go_version":"go1.3.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_vcs":"hg"}]}`,
+					filepath.Join(cache.VenGO_PATH, "goTest"))))
+
+				os.RemoveAll(filepath.Join(cache.VenGO_PATH, "goTest", "src"))
+				os.Unsetenv("VENGO_ENV")
 			})
 		})
 	})

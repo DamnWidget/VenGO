@@ -56,9 +56,9 @@ func (p *Package) String() string {
 
 // package manifest structure
 type packageManifest struct {
-	name string
-	url  string
-	vcs  *vcsType
+	Name string   `json:"package_name"`
+	Url  string   `json:"package_url"`
+	Vcs  *vcsType `json:"package_vcs,omitempty"`
 }
 
 // creates a new packageManifest
@@ -76,7 +76,7 @@ func NewPackageManifest(env *Environment, options ...func(pm *packageManifest)) 
 
 // detect the version control system used for a go package and assign it
 func (pm *packageManifest) getVcs(env *Environment) error {
-	packagePath := filepath.Join(env.Gopath, "src", pm.url)
+	packagePath := filepath.Join(env.Gopath, "src", pm.Url)
 	currdir, err := os.Getwd()
 	if err != nil {
 		return err
@@ -89,11 +89,10 @@ func (pm *packageManifest) getVcs(env *Environment) error {
 		vcsdir := fmt.Sprintf(".%s", vcs.name)
 		if fi, err := os.Stat(filepath.Join(packagePath, vcsdir)); err == nil {
 			if fi.IsDir() {
-				pm.vcs = vcs
+				pm.Vcs = vcs
 				return nil
 			}
 		}
 	}
-
-	return fmt.Errorf("%s is using an unknown version control system", pm.name)
+	return fmt.Errorf("%s is using an unknown version control system", pm.Name)
 }
