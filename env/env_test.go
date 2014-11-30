@@ -211,7 +211,7 @@ var _ = Describe("Env", func() {
 			Expect(manifest.Packages[0].Url).To(Equal("test.com/test"))
 			Expect(manifest.Packages[0].Vcs).ToNot(BeNil())
 			os.RemoveAll(filepath.Join(cache.VenGO_PATH, "goTest", "src"))
-			os.Unsetenv("VENGO_ENV")
+			os.Setenv("VENGO_ENV", "")
 		})
 
 		It("Will fail if the VENGO_ENV is not set", func() {
@@ -234,7 +234,7 @@ var _ = Describe("Env", func() {
 			Expect(manifest.Path).To(Equal(filepath.Join(cache.VenGO_PATH, "goTest")))
 			Expect(manifest.GoVersion).To(Equal("go1.3.2"))
 			Expect(manifest.Packages).To(BeEmpty())
-			os.Unsetenv("VENGO_ENV")
+			os.Setenv("VENGO_ENV", "")
 		})
 
 		Describe("envManifest.Generate", func() {
@@ -263,7 +263,7 @@ var _ = Describe("Env", func() {
 					filepath.Join(cache.VenGO_PATH, "goTest"))))
 
 				os.RemoveAll(filepath.Join(cache.VenGO_PATH, "goTest", "src"))
-				os.Unsetenv("VENGO_ENV")
+				os.Setenv("VENGO_ENV", "")
 			})
 		})
 	})

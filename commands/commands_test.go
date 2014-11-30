@@ -532,7 +532,7 @@ var _ = Describe("Commands", func() {
 			Expect(e.Err()).ToNot(HaveOccurred())
 			Expect(e.Environment).To(Equal("goTest"))
 			Expect(e.Name).To(Equal("VenGO.manifest"))
-			os.Unsetenv("VENGO_ENV")
+			os.Setenv("VENGO_ENV", "")
 		})
 
 		It("Should not prefill the environment when an environment is specified even is VENGO_ENV is set", func() {
@@ -545,7 +545,7 @@ var _ = Describe("Commands", func() {
 			Expect(e).ToNot(BeNil())
 			Expect(e.Err()).NotTo(HaveOccurred())
 			Expect(e.Environment).To(Equal("goTest"))
-			os.Unsetenv("VENGO_ENV")
+			os.Setenv("VENGO_ENV", "")
 		})
 	})
 
