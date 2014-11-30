@@ -23,9 +23,13 @@ var _ = Describe("Env", func() {
 	cache.Output = ioutil.Discard
 	log.SetOutput(ioutil.Discard)
 
+	BeforeSuite(func() {
+		cache.VenGO_PATH = filepath.Join(cache.VenGO_PATH, "..", ".VenGOTest")
+		os.MkdirAll(cache.VenGO_PATH, 0755)
+	})
+
 	AfterSuite(func() {
-		path := filepath.Join(cache.VenGO_PATH, "goTest")
-		os.RemoveAll(path)
+		os.RemoveAll(cache.VenGO_PATH)
 	})
 
 	Describe("NewEnvironment", func() {
@@ -185,11 +189,18 @@ var _ = Describe("Env", func() {
 
 	Describe("Manifest", func() {
 		BeforeEach(func() {
+			os.Setenv("VENGO_HOME", "")
 			if _, err := os.Stat(filepath.Join(cache.VenGO_PATH, "goTest")); err != nil {
 				e := env.NewEnvironment("goTest", "(goTest)")
 
 				Expect(e.Generate()).To(Succeed())
-				Expect(e.Install("1.3.2")).To(Succeed())
+				newLib, err := ioutil.TempDir("", "VenGO-")
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(os.MkdirAll(filepath.Join(newLib, "go1.3.2"), 0755)).To(Succeed())
+				Expect(
+					os.Symlink(filepath.Join(newLib, "go1.3.2"),
+						filepath.Join(cache.VenGO_PATH, "goTest", "lib"))).To(Succeed())
 			}
 		})
 

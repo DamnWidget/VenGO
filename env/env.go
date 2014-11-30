@@ -165,7 +165,8 @@ func (e *Environment) Packages(environment ...string) ([]*Package, error) {
 		basePath,
 		func(walkPath string, info os.FileInfo, err error) error {
 			if err != nil {
-				fmt.Printf("%s ignored because error: %s\n", walkPath, err)
+				fmt.Fprintf(cache.Output,
+					"%s ignored because error: %s\n", walkPath, err)
 				return nil
 			}
 			if !info.IsDir() {
