@@ -35,17 +35,22 @@ var _ = Describe("Commands", func() {
 
 	Describe("List", func() {
 		Describe("Run", func() {
-
+			var renamed bool = false
 			BeforeEach(func() {
-				rename := filepath.Join(cache.CacheDirectory(), "..", "Real-VenGO")
-				Expect(os.Rename(cache.CacheDirectory(), rename)).To(Succeed())
-				Expect(os.MkdirAll(cache.CacheDirectory(), 0755)).To(Succeed())
+				if _, err := os.Stat(filepath.Join(cache.CacheDirectory())); err == nil {
+					rename := filepath.Join(cache.CacheDirectory(), "..", "Real-VenGO")
+					Expect(os.Rename(cache.CacheDirectory(), rename)).To(Succeed())
+					Expect(os.MkdirAll(cache.CacheDirectory(), 0755)).To(Succeed())
+					renamed = true
+				}
 			})
 
 			AfterEach(func() {
-				rename := filepath.Join(cache.CacheDirectory(), "..", "Real-VenGO")
-				Expect(os.RemoveAll(cache.CacheDirectory())).To(Succeed())
-				Expect(os.Rename(rename, cache.CacheDirectory())).To(Succeed())
+				if renamed {
+					rename := filepath.Join(cache.CacheDirectory(), "..", "Real-VenGO")
+					Expect(os.RemoveAll(cache.CacheDirectory())).To(Succeed())
+					Expect(os.Rename(rename, cache.CacheDirectory())).To(Succeed())
+				}
 			})
 
 			Context("With an empty installation directory", func() {
@@ -279,18 +284,23 @@ var _ = Describe("Commands", func() {
 
 	Describe("EnvironmentsList", func() {
 		Describe("Run", func() {
-
+			var renamed bool = false
 			envs_path := cache.ExpandUser(filepath.Join("~", ".VenGO"))
 			BeforeEach(func() {
-				rename := filepath.Join(envs_path, "..", "Real.VenGO")
-				Expect(os.Rename(envs_path, rename)).To(Succeed())
-				Expect(os.MkdirAll(envs_path, 0755)).To(Succeed())
+				if _, err := os.Stat(filepath.Join(cache.CacheDirectory())); err == nil {
+					rename := filepath.Join(envs_path, "..", "Real.VenGO")
+					Expect(os.Rename(envs_path, rename)).To(Succeed())
+					Expect(os.MkdirAll(envs_path, 0755)).To(Succeed())
+					renamed = true
+				}
 			})
 
 			AfterEach(func() {
-				rename := filepath.Join(envs_path, "..", "Real.VenGO")
-				Expect(os.RemoveAll(envs_path)).To(Succeed())
-				Expect(os.Rename(rename, envs_path)).To(Succeed())
+				if renamed {
+					rename := filepath.Join(envs_path, "..", "Real.VenGO")
+					Expect(os.RemoveAll(envs_path)).To(Succeed())
+					Expect(os.Rename(rename, envs_path)).To(Succeed())
+				}
 			})
 
 			Context("With no available environments", func() {
@@ -549,21 +559,27 @@ var _ = Describe("Commands", func() {
 	})
 
 	Describe("LoadEnvironment", func() {
+		var renamed bool = false
 		envs_path := cache.ExpandUser(filepath.Join("~", ".VenGO"))
 		BeforeEach(func() {
 			os.Setenv("VENGO_HOME", "")
-			rename := filepath.Join(envs_path, "..", "Real.VenGO")
-			Expect(os.Rename(envs_path, rename)).To(Succeed())
-			Expect(os.MkdirAll(envs_path, 0755)).To(Succeed())
+			if _, err := os.Stat(envs_path); err == nil {
+				rename := filepath.Join(envs_path, "..", "Real.VenGO")
+				Expect(os.Rename(envs_path, rename)).To(Succeed())
+				Expect(os.MkdirAll(envs_path, 0755)).To(Succeed())
+				renamed = true
+			}
 
 			e := env.NewEnvironment("goTest", "[{(goTest)}]")
 			Expect(e.Generate()).To(Succeed())
 		})
 
 		AfterEach(func() {
-			rename := filepath.Join(envs_path, "..", "Real.VenGO")
-			Expect(os.RemoveAll(envs_path)).To(Succeed())
-			Expect(os.Rename(rename, envs_path)).To(Succeed())
+			if renamed {
+				rename := filepath.Join(envs_path, "..", "Real.VenGO")
+				Expect(os.RemoveAll(envs_path)).To(Succeed())
+				Expect(os.Rename(rename, envs_path)).To(Succeed())
+			}
 		})
 
 		It("Should return back a complete loaded environment", func() {
