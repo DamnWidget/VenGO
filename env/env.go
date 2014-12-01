@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -181,12 +182,25 @@ func (e *Environment) Packages(environment ...string) ([]*Package, error) {
 			for _, vcs := range vcsTypes {
 				_, err := os.Stat(filepath.Join(walkPath, "."+vcs.name))
 				if err == nil {
+					curr, _ := os.Getwd()
+					os.Chdir(walkPath)
+					args := strings.Split(vcs.refCmd, " ")
+					out, err := exec.Command(args[0], args[1:]...).CombinedOutput()
+					if err != nil {
+						if string(out) == "fatal: Needed a single revision\n" {
+							return nil
+						}
+						return err
+					}
+					os.Chdir(curr)
+					revision := strings.TrimRight(string(out), "\n")
 					options := func(p *Package) {
 						splitPaths := strings.Split(walkPath, basePath+"/")
 						p.Name = path.Base(splitPaths[1])
 						p.Url = splitPaths[1]
 						p.Installed = true
 						p.Vcs = vcs.name
+						p.CodeRevision = revision
 					}
 					packages = append(packages, NewPackage(options))
 				}

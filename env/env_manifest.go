@@ -20,7 +20,10 @@
 
 package env
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"log"
+)
 
 // environment manifest structure
 type envManifest struct {
@@ -37,6 +40,7 @@ func NewEnvManifest(env *Environment, options ...func(em *envManifest)) (*envMan
 		option(em)
 	}
 	if err := em.getPackages(env); err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	return em, nil
@@ -51,7 +55,8 @@ func (em *envManifest) getPackages(env *Environment) error {
 	for _, p := range packages {
 		name := func(pm *packageManifest) { pm.Name = p.Name }
 		url := func(pm *packageManifest) { pm.Url = p.Url }
-		pm, err := NewPackageManifest(env, name, url)
+		rev := func(pm *packageManifest) { pm.CodeRevision = p.CodeRevision }
+		pm, err := NewPackageManifest(env, name, url, rev)
 		if err != nil {
 			return err
 		}

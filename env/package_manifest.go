@@ -28,9 +28,10 @@ import (
 
 // package manifest structure
 type packageManifest struct {
-	Name string   `json:"package_name"`
-	Url  string   `json:"package_url"`
-	Vcs  *vcsType `json:"package_vcs,omitempty"`
+	Name         string   `json:"package_name"`
+	Url          string   `json:"package_url"`
+	Vcs          *vcsType `json:"package_vcs,omitempty"`
+	CodeRevision string   `json:"package_vcs_revision,omitempty"`
 }
 
 // creates a new packageManifest

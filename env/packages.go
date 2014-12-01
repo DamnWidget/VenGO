@@ -28,10 +28,11 @@ import (
 
 // Package struct
 type Package struct {
-	Name      string
-	Url       string
-	Installed bool
-	Vcs       string
+	Name         string
+	Url          string
+	Installed    bool
+	Vcs          string
+	CodeRevision string
 }
 
 // create a new package and returns it's address back
