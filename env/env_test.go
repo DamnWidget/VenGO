@@ -144,7 +144,7 @@ var _ = Describe("Env", func() {
 			var tmpDir string
 			BeforeEach(func() {
 				tmpDir = filepath.Join(os.TempDir(), "goTest")
-				os.MkdirAll(filepath.Join(tmpDir, "src", "github.com", "DamnWidget", "VenGO", ".git"), 0755)
+				os.MkdirAll(filepath.Join(tmpDir, "src", "github.com", "DamnWidget", "VenGO", ".git", "test"), 0755)
 				os.MkdirAll(filepath.Join(tmpDir, "src", "gopkg.io", "VenGO", ".hg"), 0755)
 			})
 

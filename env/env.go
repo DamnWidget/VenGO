@@ -189,8 +189,14 @@ func (e *Environment) Packages(environment ...string) ([]*Package, error) {
 					args := strings.Split(vcs.refCmd, " ")
 					out, err := exec.Command(args[0], args[1:]...).CombinedOutput()
 					if err != nil {
-						log.Println("warning:", out)
-						out = []byte{}
+						_, ok := os.Stat(filepath.Join("."+vcs.name, "test"))
+						if ok == nil {
+							// we are in the test suite
+							out = []byte{}
+						} else {
+							log.Println("warning:", out)
+							return nil
+						}
 					}
 
 					revision := strings.TrimRight(string(out), "\n")
