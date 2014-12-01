@@ -152,7 +152,7 @@ var _ = Describe("Env", func() {
 				os.RemoveAll(tmpDir)
 			})
 
-			It("Should return a *Package slice with one element", func() {
+			It("Should return a *Package slice with two elements", func() {
 				e := env.NewEnvironment("goTest", "(goTest))")
 				p, err := e.Packages(tmpDir)
 				Expect(err).ToNot(HaveOccurred())
@@ -270,7 +270,7 @@ var _ = Describe("Env", func() {
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(jsonString).To(Equal([]byte(fmt.Sprintf(
-					`{"environment_name":"goTest","environment_path":"%s","environment_go_version":"go1.3.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_vcs":"hg"}]}`,
+					`{"environment_name":"goTest","environment_path":"%s","environment_go_version":"go1.3.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_vcs":"hg","package_vcs_revision":"0000000000000000000000000000000000000000"}]}`,
 					filepath.Join(cache.VenGO_PATH, "goTest")))))
 
 				os.RemoveAll(filepath.Join(cache.VenGO_PATH, "goTest", "src"))

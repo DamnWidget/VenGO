@@ -23,6 +23,7 @@ package env
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -184,15 +185,14 @@ func (e *Environment) Packages(environment ...string) ([]*Package, error) {
 				if err == nil {
 					curr, _ := os.Getwd()
 					os.Chdir(walkPath)
+					defer os.Chdir(curr)
 					args := strings.Split(vcs.refCmd, " ")
 					out, err := exec.Command(args[0], args[1:]...).CombinedOutput()
 					if err != nil {
-						if string(out) == "fatal: Needed a single revision\n" {
-							return nil
-						}
-						return err
+						log.Println("warning:", out)
+						out = []byte{}
 					}
-					os.Chdir(curr)
+
 					revision := strings.TrimRight(string(out), "\n")
 					options := func(p *Package) {
 						splitPaths := strings.Split(walkPath, basePath+"/")
