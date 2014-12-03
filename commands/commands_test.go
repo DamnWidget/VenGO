@@ -200,7 +200,7 @@ var _ = Describe("Commands", func() {
 						Ω(len(splitVers)).Should(BeNumerically(">", 100))
 					})
 
-					It("Should return a Json object with 4 elements in installed", func() {
+					It("Should return a Json value with 4 elements in installed", func() {
 						jsonFormat := func(l *commands.List) {
 							l.DisplayAs = commands.Json
 						}

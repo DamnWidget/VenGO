@@ -23,6 +23,10 @@ package env
 import (
 	"encoding/json"
 	"log"
+	"os"
+	"path/filepath"
+
+	"github.com/DamnWidget/VenGO/cache"
 )
 
 // environment manifest structure
@@ -73,4 +77,55 @@ func (em *envManifest) Generate() ([]byte, error) {
 		return nil, err
 	}
 	return b, nil
+}
+
+// load an envManifest from a manifest file
+func LoadManifest(manifestFile string) (*envManifest, error) {
+	file, err := os.Open(manifestFile)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	dec := json.NewDecoder(file)
+	var manifest envManifest
+	if err := dec.Decode(&manifest); err != nil {
+		return nil, err
+	}
+	return &manifest, nil
+}
+
+// Generate an environment using it's manifest
+func (em *envManifest) GenerateEnvironment(v bool, prompt string) error {
+	// install go version if it's not installed yet
+	if !LookupInstalledVersion(em.GoVersion) {
+		if err := cache.CacheDonwloadMercurial(em.GoVersion); err != nil {
+			return err
+		}
+		if err := cache.Compile(em.GoVersion, v); err != nil {
+			return err
+		}
+	}
+	impEnv := NewEnvironment(em.Name, prompt)
+	if err := impEnv.Generate(); err != nil {
+		os.RemoveAll(filepath.Join(os.Getenv("VENGO_HOME"), em.Name))
+		return err
+	}
+	return nil
+}
+
+// lookup for an specific installed go version
+func LookupInstalledVersion(version string) bool {
+	installed, err := cache.GetInstalled(
+		cache.Tags(), cache.AvailableSources(), cache.AvailableBinaries())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, v := range installed {
+		if v == version {
+			return true
+		}
+	}
+
+	return false
 }

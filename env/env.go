@@ -102,7 +102,7 @@ func (e *Environment) Generate() error {
 }
 
 // checks if the environment path exists, and create it if doesn't
-// returns a file object or error if fails
+// returns a file value or error if fails
 func (e *Environment) checkPath() (*os.File, error) {
 	fileName := filepath.Join(e.VenGO_PATH, "bin", "activate")
 	return e.createFile(fileName)

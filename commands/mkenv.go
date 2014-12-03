@@ -21,7 +21,6 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -83,22 +82,8 @@ func (m *Mkenv) Run() (string, error) {
 // check if the Go version used to generate the virtual environment is
 // installed or not, if is not, return a NotIntalled error type
 func (m *Mkenv) checkInstalled() error {
-	l := NewList(func(l *List) {
-		l.DisplayAs = Json
-	})
-	result, err := l.Run()
-	if err != nil {
-		return err
+	if !env.LookupInstalledVersion(m.Version) {
+		return ErrNotInstalled
 	}
-	jsonData := new(BriefJSON)
-	if err := json.Unmarshal([]byte(result), jsonData); err != nil {
-		return err
-	}
-	for _, v := range jsonData.Installed {
-		if v == m.Version {
-			return nil
-		}
-	}
-
-	return ErrNotInstalled
+	return nil
 }

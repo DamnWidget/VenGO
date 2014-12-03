@@ -45,7 +45,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// build the list object based on the given options
+	// build the list value based on the given options
 	options := buildCommandListOptions()
 	nel := commands.NewEnvironmentsList(options...)
 	data, err := nel.Run()

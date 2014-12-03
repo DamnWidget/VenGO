@@ -277,5 +277,42 @@ var _ = Describe("Env", func() {
 				os.Setenv("VENGO_ENV", "")
 			})
 		})
+
+		Describe("LoadManifest", func() {
+			It("It should create a valid envManifest struct populated with packages", func() {
+				jsonData := fmt.Sprintf(
+					`{"environment_name":"goTest","environment_path":"%s","environment_go_version":"go1.3.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_vcs":"hg","package_vcs_revision":"0000000000000000000000000000000000000000"}]}`,
+					filepath.Join(cache.VenGO_PATH, "goTest"),
+				)
+				dir, err := ioutil.TempDir("", "VenGO-")
+
+				Expect(err).ToNot(HaveOccurred())
+				file, err := os.Create(filepath.Join(dir, "VenGO.manifest"))
+
+				Expect(err).ToNot(HaveOccurred())
+				_, err = file.WriteString(jsonData)
+				file.Close()
+
+				Expect(err).ToNot(HaveOccurred())
+				manifest, err := env.LoadManifest(filepath.Join(dir, "VenGO.manifest"))
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(manifest).ToNot(BeNil())
+				Expect(manifest.Name).To(Equal("goTest"))
+				Expect(manifest.Path).To(Equal(filepath.Join(cache.VenGO_PATH, "goTest")))
+				Expect(manifest.GoVersion).To(Equal("go1.3.2"))
+				Expect(manifest.Packages[0].Name).To(Equal("test"))
+				Expect(manifest.Packages[0].Url).To(Equal("test.com/test"))
+				Expect(manifest.Packages[0].Vcs).ToNot(BeNil())
+			})
+		})
+
+		Describe("GenerateEnvironment", func() {
+			Context("When using a manifest with an existent Go version", func() {
+				It("Should create the environment usign the given manifest", func() {
+
+				})
+			})
+		})
 	})
 })

@@ -93,7 +93,7 @@ var vcsTypes = []*vcsType{
 }
 
 // enable Unmarshaling of vcsType type
-func (vcs *vcsType) UnmasrshalJSON(b []byte) (err error) {
+func (vcs *vcsType) UnmarshalJSON(b []byte) (err error) {
 	var s string
 
 	if err = json.Unmarshal(b, &s); err == nil {

@@ -34,8 +34,11 @@ type packageManifest struct {
 	CodeRevision string   `json:"package_vcs_revision,omitempty"`
 }
 
+type funcOpts func(*packageManifest)
+
 // creates a new packageManifest
-func NewPackageManifest(env *Environment, options ...func(pm *packageManifest)) (*packageManifest, error) {
+func NewPackageManifest(
+	env *Environment, options ...funcOpts) (*packageManifest, error) {
 
 	pm := new(packageManifest)
 	for _, option := range options {

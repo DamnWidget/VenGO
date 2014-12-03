@@ -48,7 +48,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// build the list object based on the given options
+	// build the list value based on the given options
 	options := buildCommandListOptions()
 	// set the version
 	options = append(options, func(i *commands.Install) {
