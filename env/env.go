@@ -74,11 +74,13 @@ func (e *Environment) Generate() error {
 		environTemplate = filepath.Join(
 			os.Getenv("VENGO_HOME"), "scripts", "tpl", "activate")
 	} else {
-		_, caller, _, ok := runtime.Caller(1)
-		if ok {
-			// we are running in a test environment
-			environTemplate = filepath.Join(
-				path.Dir(caller), "..", "env", environTemplate)
+		if environTemplate == "tpl/activate" {
+			_, caller, _, ok := runtime.Caller(1)
+			if ok {
+				// we are running in a test environment
+				environTemplate = filepath.Join(
+					path.Dir(caller), "..", "env", environTemplate)
+			}
 		}
 	}
 	file, err := e.checkPath()

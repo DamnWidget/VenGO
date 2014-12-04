@@ -105,14 +105,14 @@ func buildCommandListOptions() []func(*commands.Export) {
 // display help message
 func displayHelp() {
 	fmt.Println(fmt.Sprintf(`%s: vengo export [options] (environmet)
-    -n, --name                  The name for the manifest file that will be created
-    -f, --force                 Force Will overwrite other exports already present
-    -p, --prettify              Write prettify JSON output
+	-n, --name                  The name for the manifest file that will be created
+	-f, --force                 Force Will overwrite other exports already present
+	-p, --prettify              Write prettify JSON output
 
-    -h, --help                  Display this message
+	-h, --help                  Display this message
 
 The environment to export is optional, if nothing is passed, VenGO just try
 to export the in use environment, if there is no environment being used and
 no environment is specified in the command invocation, it will fail
-    `, utils.Ok("Usage")))
+	`, utils.Ok("Usage")))
 }

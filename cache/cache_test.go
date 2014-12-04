@@ -14,7 +14,7 @@ import (
 	"github.com/DamnWidget/VenGO/cache"
 )
 
-var RunSlowTests = false
+var RunSlowTests = true
 
 // check if we are running on travis
 // NOTE: this will return false positives in the home directory of anyone

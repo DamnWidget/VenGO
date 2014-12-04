@@ -22,6 +22,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/DamnWidget/VenGO/env"
 	"github.com/DamnWidget/VenGO/utils"
@@ -60,6 +61,9 @@ func (i *Import) envImport() (string, error) {
 		return "", err
 	}
 	fmt.Println(utils.Ok("✔"))
+	if _, err := os.Stat(manifest.Path); err == nil && !i.Force {
+		return "", fmt.Errorf("%s already exists", i.Manifest)
+	}
 	fmt.Printf(
 		"Creating %s environment (this may take a while) ...", manifest.Path)
 	err = manifest.GenerateEnvironment(i.Verbose, i.Prompt)

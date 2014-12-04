@@ -309,10 +309,56 @@ var _ = Describe("Env", func() {
 
 		Describe("GenerateEnvironment", func() {
 			Context("When using a manifest with an existent Go version", func() {
-				It("Should create the environment usign the given manifest", func() {
+				It("Should create the environment using the given manifest", func() {
+					jsonData := fmt.Sprintf(
+						`{"environment_name":"goTest","environment_path":"%s","environment_go_version":"go1.3.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_vcs":"hg","package_vcs_revision":"0000000000000000000000000000000000000000"}]}`,
+						filepath.Join(cache.VenGO_PATH, "goTest"),
+					)
+					dir, err := ioutil.TempDir("", "VenGO-")
 
+					Expect(err).ToNot(HaveOccurred())
+					file, err := os.Create(filepath.Join(dir, "VenGO.manifest"))
+
+					Expect(err).ToNot(HaveOccurred())
+					_, err = file.WriteString(jsonData)
+					file.Close()
+
+					Expect(err).ToNot(HaveOccurred())
+					manifest, err := env.LoadManifest(filepath.Join(dir, "VenGO.manifest"))
+
+					Expect(err).ToNot(HaveOccurred())
+					Expect(manifest).ToNot(BeNil())
+
+					Expect(manifest.GenerateEnvironment(false, "(prompt)")).To(Succeed())
 				})
 			})
+
+			if RunSlowTests {
+				Context("When using a manifest with a non existent Go version", func() {
+					It("Should download, compile and create the env with it", func() {
+						jsonData := fmt.Sprintf(
+							`{"environment_name":"goTest","environment_path":"%s","environment_go_version":"go1.2.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_vcs":"hg","package_vcs_revision":"0000000000000000000000000000000000000000"}]}`,
+							filepath.Join(cache.VenGO_PATH, "goTest"),
+						)
+						dir, err := ioutil.TempDir("", "VenGO-")
+
+						Expect(err).ToNot(HaveOccurred())
+						file, err := os.Create(filepath.Join(dir, "VenGO.manifest"))
+
+						Expect(err).ToNot(HaveOccurred())
+						_, err = file.WriteString(jsonData)
+						file.Close()
+
+						Expect(err).ToNot(HaveOccurred())
+						manifest, err := env.LoadManifest(filepath.Join(dir, "VenGO.manifest"))
+
+						Expect(err).ToNot(HaveOccurred())
+						Expect(manifest).ToNot(BeNil())
+
+						Expect(manifest.GenerateEnvironment(false, "(prompt)")).To(Succeed())
+					})
+				})
+			}
 		})
 	})
 })
