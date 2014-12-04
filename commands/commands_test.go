@@ -287,7 +287,7 @@ var _ = Describe("Commands", func() {
 			var renamed bool = false
 			envs_path := cache.ExpandUser(filepath.Join("~", ".VenGO"))
 			BeforeEach(func() {
-				if _, err := os.Stat(filepath.Join(cache.CacheDirectory())); err == nil {
+				if _, err := os.Stat(envs_path); err == nil {
 					rename := filepath.Join(envs_path, "..", "Real.VenGO")
 					Expect(os.Rename(envs_path, rename)).To(Succeed())
 					Expect(os.MkdirAll(envs_path, 0755)).To(Succeed())

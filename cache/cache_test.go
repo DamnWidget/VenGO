@@ -14,7 +14,7 @@ import (
 	"github.com/DamnWidget/VenGO/cache"
 )
 
-var RunSlowTests = true
+var RunSlowTests = false
 
 // check if we are running on travis
 // NOTE: this will return false positives in the home directory of anyone
@@ -302,7 +302,7 @@ var _ = Describe("Cache", func() {
 				})
 
 				Context("Giving an existent version", func() {
-					It("Shoudl rcompile it", func() {
+					It("Shoudl recompile it", func() {
 						err := cache.CacheDonwloadMercurial("1.3.3")
 
 						Expect(err).ToNot(HaveOccurred())
