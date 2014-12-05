@@ -37,7 +37,7 @@ type vcsType struct {
 	name      string
 	refCmd    string
 	updateCmd string
-	cloneCmd  func(repo, tag string) error
+	cloneCmd  func(string, string, bool) error
 }
 
 // Git
@@ -45,7 +45,7 @@ var gitVcs = &vcsType{
 	name:      "git",
 	refCmd:    "git rev-parse --verify HEAD",
 	updateCmd: "git checkout {tag}",
-	cloneCmd: func(repo, tag string) error {
+	cloneCmd: func(repo, tag string, verbose bool) error {
 		if err := utils.Exec(true, "git", "clone", repo); err != nil {
 			return err
 		}
@@ -59,7 +59,7 @@ var mercurialVcs = &vcsType{
 	name:      "hg",
 	refCmd:    "hg --debug id -i",
 	updateCmd: "hg update -r {tag}",
-	cloneCmd: func(repo, tag string) error {
+	cloneCmd: func(repo, tag string, verbose bool) error {
 		return utils.Exec(true, "hg", "clone", "-r", tag, repo)
 	},
 }
@@ -69,7 +69,7 @@ var bazaarVcs = &vcsType{
 	name:      "bzr",
 	refCmd:    "bzr revno",
 	updateCmd: "bzr update -r revno:{tag}",
-	cloneCmd: func(branch, rev string) error {
+	cloneCmd: func(branch, rev string, verbose bool) error {
 		return utils.Exec(true, "bzr", "branch", branch, "-r", rev)
 	},
 }
@@ -79,7 +79,7 @@ var svnVcs = &vcsType{
 	name:      "svn",
 	refCmd:    `svn info | grep "Revision" | awk '{print $2}'`,
 	updateCmd: "svn up -r{tag}",
-	cloneCmd: func(repo, rev string) error {
+	cloneCmd: func(repo, rev string, verbose bool) error {
 		return utils.Exec(true, "svn", "checkout", "-r", rev, repo)
 	},
 }
@@ -99,13 +99,13 @@ func (vcs *vcsType) UnmarshalJSON(b []byte) (err error) {
 	if err = json.Unmarshal(b, &s); err == nil {
 		switch s {
 		case "git":
-			vcs = gitVcs
+			*vcs = *gitVcs
 		case "hg":
-			vcs = mercurialVcs
+			*vcs = *mercurialVcs
 		case "bzr":
-			vcs = bazaarVcs
+			*vcs = *bazaarVcs
 		case "svn":
-			vcs = svnVcs
+			*vcs = *svnVcs
 		default:
 			return fmt.Errorf("%s is not a valid vcs type")
 		}
@@ -121,6 +121,6 @@ func (vcs *vcsType) MarshalJSON() ([]byte, error) {
 }
 
 // clone the repo in an scpecific revision, tag or commit
-func (vcs *vcsType) Clone(repo, tag string) error {
-	return vcs.cloneCmd(repo, tag)
+func (vcs *vcsType) Clone(repo, tag string, verbose bool) error {
+	return vcs.cloneCmd(repo, tag, verbose)
 }

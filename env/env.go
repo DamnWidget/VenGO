@@ -237,3 +237,19 @@ func (e *Environment) Manifest() (*envManifest, error) {
 	}
 	return NewEnvManifest(e, general, goVersion)
 }
+
+// activate environment in the current process
+func (e *Environment) activate() {
+	os.Setenv("VENGO_ENV", e.VenGO_PATH)
+	os.Setenv("GOTOOLDIR", e.Gotooldir)
+	os.Setenv("GORROT", e.Goroot)
+	os.Setenv("GOPATH", e.Gopath)
+}
+
+// deactivate environment in the current process
+func (e *Environment) deactivate() {
+	os.Setenv("VENGO_ENV", "")
+	os.Setenv("GOTOOLDIR", "")
+	os.Setenv("GOROOT", "")
+	os.Setenv("GOPATH", "")
+}

@@ -328,7 +328,6 @@ var _ = Describe("Env", func() {
 
 					Expect(err).ToNot(HaveOccurred())
 					Expect(manifest).ToNot(BeNil())
-
 					Expect(manifest.GenerateEnvironment(false, "(prompt)")).To(Succeed())
 				})
 			})

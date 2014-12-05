@@ -27,6 +27,7 @@ import (
 	"path/filepath"
 
 	"github.com/DamnWidget/VenGO/cache"
+	"github.com/DamnWidget/VenGO/utils"
 )
 
 // environment manifest structure
@@ -109,6 +110,34 @@ func (em *envManifest) GenerateEnvironment(v bool, prompt string) error {
 	if err := impEnv.Generate(); err != nil {
 		os.RemoveAll(filepath.Join(os.Getenv("VENGO_HOME"), em.Name))
 		return err
+	}
+	impEnv.activate()
+	defer impEnv.deactivate()
+	if err := em.installPackages(v); err != nil {
+		os.RemoveAll(filepath.Join(os.Getenv("VENGO_HOME"), em.Name))
+		return err
+	}
+	return nil
+}
+
+// install all the packages in the manifest using their respective revisions
+func (em *envManifest) installPackages(v bool) error {
+	curr, _ := os.Getwd()
+	defer os.Chdir(curr)
+	os.Chdir(em.Path)
+	for _, pkg := range em.Packages {
+		if pkg.CodeRevision == "0000000000000000000000000000000000000000" {
+			continue  // we are in a test here			
+		}
+		if err := pkg.Vcs.Clone(pkg.Url, pkg.CodeRevision, v); err != nil {
+			return err
+		}
+		os.Chdir(pkg.Name)
+		if err := utils.Exec(v, []string{"go", "install"}...); err != nil {
+			return err
+		}
+		c, _ := os.Getwd()
+		os.Chdir(filepath.Join(c, "../"))
 	}
 	return nil
 }
