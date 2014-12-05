@@ -127,8 +127,9 @@ func (em *envManifest) installPackages(v bool) error {
 	os.Chdir(em.Path)
 	for _, pkg := range em.Packages {
 		if pkg.CodeRevision == "0000000000000000000000000000000000000000" {
-			continue  // we are in a test here			
+			continue // we are in a test here
 		}
+		log.Println(pkg)
 		if err := pkg.Vcs.Clone(pkg.Url, pkg.CodeRevision, v); err != nil {
 			return err
 		}

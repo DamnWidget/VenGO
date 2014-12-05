@@ -22,6 +22,7 @@ package env
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/DamnWidget/VenGO/utils"
@@ -38,6 +39,7 @@ type vcsType struct {
 	refCmd    string
 	updateCmd string
 	cloneCmd  func(string, string, bool) error
+	schemeCmd func(string, bool) (string, error)
 }
 
 // Git
@@ -49,8 +51,19 @@ var gitVcs = &vcsType{
 		if err := utils.Exec(true, "git", "clone", repo); err != nil {
 			return err
 		}
-		err := utils.Exec(true, "git", "checkout", tag)
+		err := utils.Exec(verbose, "git", "checkout", tag)
 		return err
+	},
+	schemeCmd: func(repo string, verbose bool) (string, error) {
+		for _, scheme := range []string{"git", "https", "http", "git+ssh"} {
+			if err := utils.Exec(
+				verbose, "git", "ls-remote",
+				fmt.Sprintf("%s://%s", scheme, repo),
+			); err == nil {
+				return scheme, nil
+			}
+		}
+		return "", errors.New("scheme not found!")
 	},
 }
 
@@ -60,7 +73,17 @@ var mercurialVcs = &vcsType{
 	refCmd:    "hg --debug id -i",
 	updateCmd: "hg update -r {tag}",
 	cloneCmd: func(repo, tag string, verbose bool) error {
-		return utils.Exec(true, "hg", "clone", "-r", tag, repo)
+		return utils.Exec(verbose, "hg", "clone", "-r", tag, repo)
+	},
+	schemeCmd: func(repo string, verbose bool) (string, error) {
+		for _, scheme := range []string{"https", "http", "ssh"} {
+			if err := utils.Exec(
+				verbose, "hg", "identify", fmt.Sprintf("%s://%s", scheme, repo),
+			); err == nil {
+				return scheme, nil
+			}
+		}
+		return "", errors.New("scheme not found")
 	},
 }
 
@@ -70,7 +93,17 @@ var bazaarVcs = &vcsType{
 	refCmd:    "bzr revno",
 	updateCmd: "bzr update -r revno:{tag}",
 	cloneCmd: func(branch, rev string, verbose bool) error {
-		return utils.Exec(true, "bzr", "branch", branch, "-r", rev)
+		return utils.Exec(verbose, "bzr", "branch", branch, "-r", rev)
+	},
+	schemeCmd: func(repo string, verbose bool) (string, error) {
+		for _, scheme := range []string{"https", "http", "bzr", "bzr+ssh"} {
+			if err := utils.Exec(
+				verbose, "bzr", "info", fmt.Sprintf("%s://%s", scheme, repo),
+			); err == nil {
+				return scheme, nil
+			}
+		}
+		return "", errors.New("scheme not found")
 	},
 }
 
@@ -80,7 +113,17 @@ var svnVcs = &vcsType{
 	refCmd:    `svn info | grep "Revision" | awk '{print $2}'`,
 	updateCmd: "svn up -r{tag}",
 	cloneCmd: func(repo, rev string, verbose bool) error {
-		return utils.Exec(true, "svn", "checkout", "-r", rev, repo)
+		return utils.Exec(verbose, "svn", "checkout", "-r", rev, repo)
+	},
+	schemeCmd: func(repo string, verbose bool) (string, error) {
+		for _, scheme := range []string{"https", "http", "svn", "svn+ssh"} {
+			if err := utils.Exec(
+				verbose, "svn", "info", fmt.Sprintf("%s://%s", scheme, repo),
+			); err == nil {
+				return scheme, nil
+			}
+		}
+		return "", errors.New("scheme not found")
 	},
 }
 
@@ -122,5 +165,6 @@ func (vcs *vcsType) MarshalJSON() ([]byte, error) {
 
 // clone the repo in an scpecific revision, tag or commit
 func (vcs *vcsType) Clone(repo, tag string, verbose bool) error {
+	//
 	return vcs.cloneCmd(repo, tag, verbose)
 }
