@@ -184,6 +184,7 @@ This manifest can be then used by anyone that has access to it with the command 
 version in the newly import VenGO environment `GOPATH`. This is similar to what `godep` does but for the whole `GOPATH` and without packing the code in a sub-directory or rewritting import paths.
 
 **note**: probably `godep` is still a more secure option as VenGO import still depends on network access and remote VCS systems.
+
 **note**: VenGO also works with [gopkg.in](http://labix.org/gopkg.in) and [semver.v1](https://godoc.org/azul3d.org/semver.v1)
 
 ### VenGO import
