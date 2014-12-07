@@ -21,11 +21,13 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
+	"github.com/DamnWidget/VenGO/cache"
 	"github.com/DamnWidget/VenGO/env"
-	"github.com/DamnWidget/VenGO/utils"
 )
 
 type Import struct {
@@ -41,9 +43,6 @@ func NewImport(options ...func(i *Import)) *Import {
 	for _, option := range options {
 		option(imp)
 	}
-	if imp.Prompt == "" {
-		imp.Prompt = fmt.Sprintf("[%s]", imp.Manifest)
-	}
 	return imp
 }
 
@@ -54,26 +53,22 @@ func (i *Import) Run() (string, error) {
 
 // import the given manifest and create a new environment based on it
 func (i *Import) envImport() (string, error) {
-	fmt.Printf("Loading manifest file %s... ", i.Manifest)
+	fmt.Printf("Loading manifest file %s... \n", i.Manifest)
 	manifest, err := env.LoadManifest(i.Manifest)
 	if err != nil {
-		fmt.Println(utils.Fail("✖"))
 		return "", err
 	}
-	fmt.Println(utils.Ok("✔"))
-	if _, err := os.Stat(manifest.Path); err == nil && !i.Force {
-		return "", fmt.Errorf("%s already exists", i.Manifest)
+	_, err = os.Stat(filepath.Join(cache.VenGO_PATH, manifest.Name))
+	if err == nil && !i.Force {
+		return "", errors.New("environment already exists")
 	}
-	fmt.Printf(
-		"Creating %s environment (this may take a while) ...", manifest.Path)
+	fmt.Printf("Creating %s environment...\n", filepath.Join(cache.VenGO_PATH, manifest.Name))
 	err = manifest.GenerateEnvironment(i.Verbose, i.Prompt)
 	if err != nil {
-		fmt.Println(utils.Fail("✖"))
 		return "", err
 	}
-	fmt.Println(utils.Ok("✔"))
 	return fmt.Sprintf(
-		"%s has been created into %s use vengo activate %s to active it",
-		manifest.Name, manifest.Path,
+		"%s has been created into %s use vengo activate to use it",
+		manifest.Name, filepath.Join(cache.VenGO_PATH, manifest.Name),
 	), nil
 }

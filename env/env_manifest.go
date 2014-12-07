@@ -22,18 +22,17 @@ package env
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/DamnWidget/VenGO/cache"
-	"github.com/DamnWidget/VenGO/utils"
 )
 
 // environment manifest structure
 type envManifest struct {
 	Name      string             `json:"environment_name"`
-	Path      string             `json:"environment_path"`
 	GoVersion string             `json:"environment_go_version"`
 	Packages  []*packageManifest `json:"environment_packages"`
 }
@@ -60,8 +59,9 @@ func (em *envManifest) getPackages(env *Environment) error {
 	for _, p := range packages {
 		name := func(pm *packageManifest) { pm.Name = p.Name }
 		url := func(pm *packageManifest) { pm.Url = p.Url }
+		root := func(pm *packageManifest) { pm.Root = p.Root }
 		rev := func(pm *packageManifest) { pm.CodeRevision = p.CodeRevision }
-		pm, err := NewPackageManifest(env, name, url, rev)
+		pm, err := NewPackageManifest(env, name, url, root, rev)
 		if err != nil {
 			return err
 		}
@@ -106,8 +106,15 @@ func (em *envManifest) GenerateEnvironment(v bool, prompt string) error {
 			return err
 		}
 	}
+	if prompt == "" {
+		prompt = fmt.Sprintf("[%s]", em.Name)
+	}
 	impEnv := NewEnvironment(em.Name, prompt)
 	if err := impEnv.Generate(); err != nil {
+		os.RemoveAll(filepath.Join(os.Getenv("VENGO_HOME"), em.Name))
+		return err
+	}
+	if err := impEnv.Install(em.GoVersion); err != nil {
 		os.RemoveAll(filepath.Join(os.Getenv("VENGO_HOME"), em.Name))
 		return err
 	}
@@ -123,22 +130,19 @@ func (em *envManifest) GenerateEnvironment(v bool, prompt string) error {
 // install all the packages in the manifest using their respective revisions
 func (em *envManifest) installPackages(v bool) error {
 	curr, _ := os.Getwd()
+	environmentPath := filepath.Join(os.Getenv("VENGO_ENV"), "src")
+	if err := os.MkdirAll(environmentPath, 0755); err != nil {
+		return err
+	}
 	defer os.Chdir(curr)
-	os.Chdir(em.Path)
+	os.Chdir(environmentPath)
 	for _, pkg := range em.Packages {
 		if pkg.CodeRevision == "0000000000000000000000000000000000000000" {
 			continue // we are in a test here
 		}
-		log.Println(pkg)
-		if err := pkg.Vcs.Clone(pkg.Url, pkg.CodeRevision, v); err != nil {
+		if err := pkg.Vcs.Clone(pkg.Url, pkg.CodeRevision, pkg.Root, v); err != nil {
 			return err
 		}
-		os.Chdir(pkg.Name)
-		if err := utils.Exec(v, []string{"go", "install"}...); err != nil {
-			return err
-		}
-		c, _ := os.Getwd()
-		os.Chdir(filepath.Join(c, "../"))
 	}
 	return nil
 }

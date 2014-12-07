@@ -216,7 +216,6 @@ var _ = Describe("Env", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(manifest).ToNot(BeNil())
 			Expect(manifest.Name).To(Equal("goTest"))
-			Expect(manifest.Path).To(Equal(filepath.Join(cache.VenGO_PATH, "goTest")))
 			Expect(manifest.GoVersion).To(Equal("go1.3.2"))
 			Expect(manifest.Packages[0].Name).To(Equal("test"))
 			Expect(manifest.Packages[0].Url).To(Equal("test.com/test"))
@@ -242,7 +241,6 @@ var _ = Describe("Env", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(manifest).ToNot(BeNil())
 			Expect(manifest.Name).To(Equal("goTest"))
-			Expect(manifest.Path).To(Equal(filepath.Join(cache.VenGO_PATH, "goTest")))
 			Expect(manifest.GoVersion).To(Equal("go1.3.2"))
 			Expect(manifest.Packages).To(BeEmpty())
 			os.Setenv("VENGO_ENV", "")
@@ -261,7 +259,6 @@ var _ = Describe("Env", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(manifest).ToNot(BeNil())
 				Expect(manifest.Name).To(Equal("goTest"))
-				Expect(manifest.Path).To(Equal(filepath.Join(cache.VenGO_PATH, "goTest")))
 				Expect(manifest.GoVersion).To(Equal("go1.3.2"))
 				Expect(manifest.Packages[0].Name).To(Equal("test"))
 				Expect(manifest.Packages[0].Url).To(Equal("test.com/test"))
@@ -269,9 +266,7 @@ var _ = Describe("Env", func() {
 				jsonString, err := manifest.Generate()
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(jsonString).To(Equal([]byte(fmt.Sprintf(
-					`{"environment_name":"goTest","environment_path":"%s","environment_go_version":"go1.3.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_vcs":"hg","package_vcs_revision":"0000000000000000000000000000000000000000"}]}`,
-					filepath.Join(cache.VenGO_PATH, "goTest")))))
+				Expect(jsonString).To(Equal([]byte(`{"environment_name":"goTest","environment_go_version":"go1.3.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_root":"test.com","package_vcs":"hg","package_vcs_revision":"0000000000000000000000000000000000000000"}]}`)))
 
 				os.RemoveAll(filepath.Join(cache.VenGO_PATH, "goTest", "src"))
 				os.Setenv("VENGO_ENV", "")
@@ -299,7 +294,6 @@ var _ = Describe("Env", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(manifest).ToNot(BeNil())
 				Expect(manifest.Name).To(Equal("goTest"))
-				Expect(manifest.Path).To(Equal(filepath.Join(cache.VenGO_PATH, "goTest")))
 				Expect(manifest.GoVersion).To(Equal("go1.3.2"))
 				Expect(manifest.Packages[0].Name).To(Equal("test"))
 				Expect(manifest.Packages[0].Url).To(Equal("test.com/test"))
@@ -310,10 +304,7 @@ var _ = Describe("Env", func() {
 		Describe("GenerateEnvironment", func() {
 			Context("When using a manifest with an existent Go version", func() {
 				It("Should create the environment using the given manifest", func() {
-					jsonData := fmt.Sprintf(
-						`{"environment_name":"goTest","environment_path":"%s","environment_go_version":"go1.3.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_vcs":"hg","package_vcs_revision":"0000000000000000000000000000000000000000"}]}`,
-						filepath.Join(cache.VenGO_PATH, "goTest"),
-					)
+					jsonData := `{"environment_name":"goTest","environment_go_version":"go1.3.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_root":"test.com","package_vcs":"hg","package_vcs_revision":"0000000000000000000000000000000000000000"}]}`
 					dir, err := ioutil.TempDir("", "VenGO-")
 
 					Expect(err).ToNot(HaveOccurred())
@@ -335,10 +326,7 @@ var _ = Describe("Env", func() {
 			if RunSlowTests {
 				Context("When using a manifest with a non existent Go version", func() {
 					It("Should download, compile and create the env with it", func() {
-						jsonData := fmt.Sprintf(
-							`{"environment_name":"goTest","environment_path":"%s","environment_go_version":"go1.2.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_vcs":"hg","package_vcs_revision":"0000000000000000000000000000000000000000"}]}`,
-							filepath.Join(cache.VenGO_PATH, "goTest"),
-						)
+						jsonData := `{"environment_name":"goTest","environment_path":"%s","environment_go_version":"go1.2.2","environment_packages":[{"package_name":"test","package_url":"test.com/test","package_root":"test.com","package_vcs":"hg","package_vcs_revision":"0000000000000000000000000000000000000000"}]}`
 						dir, err := ioutil.TempDir("", "VenGO-")
 
 						Expect(err).ToNot(HaveOccurred())

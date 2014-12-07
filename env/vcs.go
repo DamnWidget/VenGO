@@ -24,6 +24,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/DamnWidget/VenGO/utils"
 )
@@ -48,18 +51,22 @@ var gitVcs = &vcsType{
 	refCmd:    "git rev-parse --verify HEAD",
 	updateCmd: "git checkout {tag}",
 	cloneCmd: func(repo, tag string, verbose bool) error {
-		if err := utils.Exec(true, "git", "clone", repo); err != nil {
+		if err := utils.Exec(verbose, "git", "clone", repo); err != nil {
 			return err
 		}
-		err := utils.Exec(verbose, "git", "checkout", tag)
+		curr, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		os.Chdir(path.Base(repo))
+		err = utils.Exec(verbose, "git", "checkout", tag)
+		os.Chdir(curr)
 		return err
 	},
 	schemeCmd: func(repo string, verbose bool) (string, error) {
 		for _, scheme := range []string{"git", "https", "http", "git+ssh"} {
-			if err := utils.Exec(
-				verbose, "git", "ls-remote",
-				fmt.Sprintf("%s://%s", scheme, repo),
-			); err == nil {
+			tmp := fmt.Sprintf("%s://%s", scheme, repo)
+			if err := utils.Exec(verbose, "git", "ls-remote", tmp); err == nil {
 				return scheme, nil
 			}
 		}
@@ -77,9 +84,8 @@ var mercurialVcs = &vcsType{
 	},
 	schemeCmd: func(repo string, verbose bool) (string, error) {
 		for _, scheme := range []string{"https", "http", "ssh"} {
-			if err := utils.Exec(
-				verbose, "hg", "identify", fmt.Sprintf("%s://%s", scheme, repo),
-			); err == nil {
+			tmp := fmt.Sprintf("%s://%s", scheme, repo)
+			if err := utils.Exec(verbose, "hg", "identify", tmp); err == nil {
 				return scheme, nil
 			}
 		}
@@ -97,9 +103,8 @@ var bazaarVcs = &vcsType{
 	},
 	schemeCmd: func(repo string, verbose bool) (string, error) {
 		for _, scheme := range []string{"https", "http", "bzr", "bzr+ssh"} {
-			if err := utils.Exec(
-				verbose, "bzr", "info", fmt.Sprintf("%s://%s", scheme, repo),
-			); err == nil {
+			tmp := fmt.Sprintf("%s://%s", scheme, repo)
+			if err := utils.Exec(verbose, "bzr", "info", tmp); err == nil {
 				return scheme, nil
 			}
 		}
@@ -117,9 +122,8 @@ var svnVcs = &vcsType{
 	},
 	schemeCmd: func(repo string, verbose bool) (string, error) {
 		for _, scheme := range []string{"https", "http", "svn", "svn+ssh"} {
-			if err := utils.Exec(
-				verbose, "svn", "info", fmt.Sprintf("%s://%s", scheme, repo),
-			); err == nil {
+			tmp := fmt.Sprintf("%s://%s", scheme, repo)
+			if err := utils.Exec(verbose, "svn", "info", tmp); err == nil {
 				return scheme, nil
 			}
 		}
@@ -164,7 +168,22 @@ func (vcs *vcsType) MarshalJSON() ([]byte, error) {
 }
 
 // clone the repo in an scpecific revision, tag or commit
-func (vcs *vcsType) Clone(repo, tag string, verbose bool) error {
-	//
-	return vcs.cloneCmd(repo, tag, verbose)
+func (vcs *vcsType) Clone(repo, tag, root string, verbose bool) error {
+	// detect the right scheme to use very like go get does
+	if scheme, err := vcs.schemeCmd(repo, verbose); err != nil {
+		return err
+	} else {
+		curr, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		if err := os.MkdirAll(filepath.Join(curr, root), 0755); err != nil {
+			return err
+		}
+		if err := os.Chdir(root); err != nil {
+			return err
+		}
+		defer os.Chdir(curr)
+		return vcs.cloneCmd(fmt.Sprintf("%s://%s", scheme, repo), tag, verbose)
+	}
 }

@@ -30,6 +30,7 @@ import (
 type packageManifest struct {
 	Name         string   `json:"package_name"`
 	Url          string   `json:"package_url"`
+	Root         string   `json:"package_root"`
 	Vcs          *vcsType `json:"package_vcs,omitempty"`
 	CodeRevision string   `json:"package_vcs_revision,omitempty"`
 }

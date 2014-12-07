@@ -206,6 +206,7 @@ func (e *Environment) Packages(environment ...string) ([]*Package, error) {
 						splitPaths := strings.Split(walkPath, basePath+"/")
 						p.Name = path.Base(splitPaths[1])
 						p.Url = splitPaths[1]
+						p.Root = path.Dir(p.Url)
 						p.Installed = true
 						p.Vcs = vcs.name
 						p.CodeRevision = revision
@@ -225,7 +226,6 @@ func (e *Environment) Packages(environment ...string) ([]*Package, error) {
 func (e *Environment) Manifest() (*envManifest, error) {
 	general := func(em *envManifest) {
 		em.Name = path.Base(e.VenGO_PATH)
-		em.Path = e.VenGO_PATH
 		em.Packages = []*packageManifest{}
 	}
 	lib, err := os.Readlink(e.Goroot)
@@ -240,10 +240,10 @@ func (e *Environment) Manifest() (*envManifest, error) {
 
 // activate environment in the current process
 func (e *Environment) activate() {
-	os.Setenv("VENGO_ENV", e.VenGO_PATH)
-	os.Setenv("GOTOOLDIR", e.Gotooldir)
-	os.Setenv("GORROT", e.Goroot)
-	os.Setenv("GOPATH", e.Gopath)
+	os.Setenv("VENGO_ENV", cache.ExpandUser(e.VenGO_PATH))
+	os.Setenv("GOTOOLDIR", cache.ExpandUser(e.Gotooldir))
+	os.Setenv("GORROT", cache.ExpandUser(e.Goroot))
+	os.Setenv("GOPATH", cache.ExpandUser(e.Gopath))
 }
 
 // deactivate environment in the current process

@@ -30,6 +30,7 @@ import (
 type Package struct {
 	Name         string
 	Url          string
+	Root         string
 	Installed    bool
 	Vcs          string
 	CodeRevision string

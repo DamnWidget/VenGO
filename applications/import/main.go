@@ -60,11 +60,12 @@ func main() {
 		i.Manifest = manifest[0]
 	})
 	i := commands.NewImport(options...)
-	_, err := i.Run()
+	out, err := i.Run()
 	if err != nil {
 		fmt.Println(utils.Fail(fmt.Sprintf("error: %v", err)))
 		os.Exit(1)
 	}
+	fmt.Printf("%s\n", utils.Ok(out))
 	os.Exit(0)
 }
 
