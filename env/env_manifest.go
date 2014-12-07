@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 
 	"github.com/DamnWidget/VenGO/cache"
+	"github.com/DamnWidget/VenGO/utils"
 )
 
 // environment manifest structure
@@ -140,9 +141,12 @@ func (em *envManifest) installPackages(v bool) error {
 		if pkg.CodeRevision == "0000000000000000000000000000000000000000" {
 			continue // we are in a test here
 		}
+		fmt.Printf("Cloning %s... ", pkg.Name)
 		if err := pkg.Vcs.Clone(pkg.Url, pkg.CodeRevision, pkg.Root, v); err != nil {
+			fmt.Println(utils.Fail("✖"))
 			return err
 		}
+		fmt.Println(utils.Ok("✔"))
 	}
 	return nil
 }
