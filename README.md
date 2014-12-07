@@ -16,7 +16,8 @@ like `gvm` that helps the programmer to install and use different Go versions. B
 both and in an easy and familiar way.
 
 VenGO is able to install as many Go versions from as many sources that programmers want and to create as many isolated
-environments as they need using one or more Go versions.
+environments as they need using one or more Go versions. The programmers can then export and import VenGO environments
+from and to machines using the `export` and `import` commands.
 
 ## Platforms and Support
 
@@ -106,7 +107,7 @@ $ deactivate
 
 ## Detailed guide on VenGO commands
 
-VenGO comes with eight different commands that will be used trough the vengo command line application
+VenGO comes with ten different commands that will be used trough the vengo command line application
 ![VenGO no arguments](https://raw.githubusercontent.com/DamnWidget/VenGO/images/vengo.png)
 
 ### VenGO install
@@ -172,6 +173,22 @@ Vengo lsenvs is used to list Isolated Virtual Go Environments in your system. In
 ### VenGO rmenv
 
 Vengo rmenv is used to delete Virtual Go Environments, delete an environment doesn't affect the Go version used to install the environment or other environments using that Go version
+
+### VenGO export
+
+Vengo export is used to export VenGO environments into vengo manifest files in JSON format that can be used later by the `vengo import` command to recreate a previously exported VenGO environment. VenGO generates a JSON
+file that contains all the packages that have been installed into the active VenGO environment `GOPATH` using `go get` (that means git, mercurial, bazaar or subversion had been used to install those packages previously)
+capturing the specific revisions used when the package was installed.
+
+This manifest can be then used by anyone that has access to it with the command `vengo import` to generate the exact same environment in their own. VenGO will clone the packages in the manifest in the exact specific
+version in the newly import VenGO environment `GOPATH`. This is similar to what `godep` does but for the whole `GOPATH` and without packing the code in a sub-directory or rewritting import paths.
+
+**note**: probably `godep` is still a more secure option as VenGO import still depends on network access and remote VCS systems.
+**note**: VenGO also works with [gopkg.in](http://labix.org/gopkg.in) and [semver.v1](https://godoc.org/azul3d.org/semver.v1)
+
+### VenGO import
+
+Vengo import is ised to recreate environments previously exported with the command `vengo export`
 
 ### VenGO vengo-uninstall
 
