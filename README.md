@@ -10,7 +10,7 @@ Why a tool to generate and manage virtual environments in Go?. Well, sometimes p
 maintain a project that requires a specific version of Go or use specific versions of 3rd party libraries that
 maybe depend themselves on some specific Go version.
 
-There are already tools like `godep` to freeze dependencies and make the programmer able to build a package in
+There are already tools like `godep` to vendoring dependencies and make the programmer able to build a package in
 consistent way reproducing the exact package ecosystem that was used when it was developed and Go versions managers
 like `gvm` that helps the programmer to install and use different Go versions. But there is no a tool that can do
 both and in an easy and familiar way.
