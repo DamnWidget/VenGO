@@ -67,6 +67,16 @@ files like
 echo "source $HOME/.VenGO/bin/vengo" >> $HOME/.bashrc
 ```
 
+#### Fish users
+
+If you are a [fish](http://fishshell.com) user, copy and paste the code below to make your vengo installation works
+
+```
+echo 'function vengo --description "Generate and manage isolated virtual Go environments"
+  bash -c \'for inc in ~/.VenGO/bin/includes/*; do . $inc; done && . ~/.VenGO/bin/vengo; vengo "$@"\' vengo $argv
+end' > ~/.config/fish/function/vengo.fish
+```
+
 ## Usage
 
 VenGO is quite similar to Python's virtualenvwrapper tool, if you execute just `vengo` with no arguments you will get
