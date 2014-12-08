@@ -69,7 +69,7 @@ echo "source $HOME/.VenGO/bin/vengo" >> $HOME/.bashrc
 
 #### Fish users
 
-Is you are a fish user, copy and paste the code below to make your vengo installation works
+If you are a [fish](http://fishshell.com) user, copy and paste the code below to make your vengo installation works
 
 ```
 echo 'function vengo --description "Generate and manage isolated virtual Go environments"
