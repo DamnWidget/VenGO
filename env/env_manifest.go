@@ -45,7 +45,6 @@ func NewEnvManifest(env *Environment, options ...func(em *envManifest)) (*envMan
 		option(em)
 	}
 	if err := em.getPackages(env); err != nil {
-		log.Println(err)
 		return nil, err
 	}
 	return em, nil
@@ -53,7 +52,7 @@ func NewEnvManifest(env *Environment, options ...func(em *envManifest)) (*envMan
 
 // detect all the environment manifest packages and populate its own manifests
 func (em *envManifest) getPackages(env *Environment) error {
-	packages, err := env.Packages()
+	packages, err := env.Packages(env.VenGO_PATH)
 	if err != nil {
 		return err
 	}

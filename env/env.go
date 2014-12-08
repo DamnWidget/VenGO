@@ -196,7 +196,7 @@ func (e *Environment) Packages(environment ...string) ([]*Package, error) {
 							// we are in the test suite
 							out = []byte{}
 						} else {
-							log.Println("warning:", out)
+							log.Printf("warning %s skypped: %s", walkPath, string(out))
 							return nil
 						}
 					}

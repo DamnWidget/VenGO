@@ -32,6 +32,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/DamnWidget/VenGO/cache"
 	"github.com/DamnWidget/VenGO/env"
 	"github.com/DamnWidget/VenGO/utils"
 )
@@ -123,12 +124,25 @@ func (e *Export) Err() error {
 // load environment using the activate environment script, return an error
 // if the operation can't be completed
 func (e *Export) LoadEnvironment() (*env.Environment, error) {
-	filename := filepath.Join(e.Environment, "bin", "activate")
-	activateFile, err := ioutil.ReadFile(filename)
-	byteLines := bytes.Split(activateFile, []byte("\n"))
+	readFile := func(filename string) ([]byte, error) {
+		return ioutil.ReadFile(filename)
+	}
+	filenames := [2]string{
+		filepath.Join(e.Environment, "bin", "activate"),
+		filepath.Join(cache.VenGO_PATH, e.Environment, "bin", "activate"),
+	}
+	var err error
+	var activateFile []byte
+	for _, filename := range filenames {
+		activateFile, err = readFile(filename)
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
+	byteLines := bytes.Split(activateFile, []byte("\n"))
 	re := regexp.MustCompile(`"(.*?) `)
 	prompt := strings.TrimRight(strings.TrimLeft(
 		re.FindAllString(string(byteLines[86]), 1)[0], `"`), " ")

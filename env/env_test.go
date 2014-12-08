@@ -2,7 +2,6 @@ package env_test
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -224,13 +223,13 @@ var _ = Describe("Env", func() {
 			os.Setenv("VENGO_ENV", "")
 		})
 
-		It("Will fail if the VENGO_ENV is not set", func() {
+		It("Will not fail if the VENGO_ENV is not set", func() {
 			e := env.NewEnvironment("goTest", "(prompt)")
 			manifest, err := e.Manifest()
 
-			Expect(manifest).To(BeNil())
-			Expect(err).To(HaveOccurred())
-			Expect(err).To(Equal(errors.New("VENGO_ENV environment variable is not set")))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(manifest.Name).To(Equal("goTest"))
+			Expect(manifest.GoVersion).To(Equal("go1.3.2"))
 		})
 
 		It("Will return empty packages map if no package is installed", func() {
