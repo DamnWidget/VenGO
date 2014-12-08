@@ -98,7 +98,7 @@ function vengo {
         # handle the given command with the right command handler
         elif [ -f "$VENGO_HOME/bin/$command" ]; then
             shift
-            $VENGO_HOME/bin/$command "$@"
+            $VENGO_HOME/bin/$command "$@" && return 0 || return 1
         elif [ -n "$command" ]; then
             echo "Command '$command' doesn't look like a valid VenGO command..."
             suggest "execute 'vengo' with no arguments to get a list of valid commands"
