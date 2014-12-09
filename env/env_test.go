@@ -71,7 +71,7 @@ var _ = Describe("Env", func() {
 				Expect(byteLines[76]).To(Equal([]byte(goTooldir)))
 				Expect(byteLines[79]).To(Equal([]byte(goPath)))
 				Expect(byteLines[86]).To(Equal([]byte(ps1)))
-
+				os.RemoveAll(e.VenGO_PATH)
 			})
 		})
 
@@ -86,6 +86,7 @@ var _ = Describe("Env", func() {
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(e.Install("1.3.2")).To(Succeed())
+				os.RemoveAll(filepath.Join(cache.CacheDirectory(), "go1.3.2"))
 			})
 		})
 	}
