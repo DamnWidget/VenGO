@@ -88,6 +88,20 @@ mkdir -p ~/.config/fish/functions && wget https://raw.githubusercontent.com/Damn
 
 Fish users should use the command `vengo_activate` instead of `vengo activate` to activate environments.
 
+##### VenGO fish right prompt (optional)
+
+If you want to get the active environment prompt at the right of your fish prompt just copy and paste the fish function below
+into `~/.config/fish/functions/fish_right_prompt.fish`
+
+```fish
+function fish_right_prompt -d "VenGO information"
+        if [ "$VENGO_ENV" != "" ]
+        set ENV  (basename "$VENGO_ENV")
+            echo "(VenGO: $ENV)"
+        end
+end
+```
+
 ## Usage
 
 VenGO is quite similar to Python's virtualenvwrapper tool, if you execute just `vengo` with no arguments you will get
