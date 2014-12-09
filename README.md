@@ -90,7 +90,7 @@ Fish users should use the command `vengo_activate` instead of `vengo activate` t
 
 ##### VenGO fish prompt (optional)
 
-You can make the VenGO active environment appearin your fish prompt adding `"$VENGO_PROMPT"` to whatever place that you like it, so for example, adding it to the beginning of your prompt it can looks like 
+You can make the VenGO active environment appear in your fish prompt adding `"$VENGO_PROMPT"` to whatever place that you like it, so for example, adding it to the beginning of your prompt it can looks like 
 
 `(VenGO) damnwidget@iMacStation ~ $`
 
