@@ -28,6 +28,7 @@ function deactivate --description "Deactivate a VenGO active environment"
     end
 
     set -e VENGO_ENV
+    set -e VENGO_PROMPT
     functions -e deactivate
 end
 
@@ -49,6 +50,7 @@ set -g GOROOT "{{ .Goroot }}"
 set -g GOTOOLDIR "{{ .Gotooldir }}"
 set -g GOPATH "{{ .Gopath }}"
 set -x GOPATH $GOPATH
+set -g VENGO_PROMPT "{{ .PS1 }}"
 
 # set the PATH
 set -g PATH "$GOROOT/bin" "$GOPATH/bin" $PATH
