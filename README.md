@@ -69,12 +69,21 @@ echo "source $HOME/.VenGO/bin/vengo" >> $HOME/.bashrc
 
 #### Fish users
 
-If you are a [fish](http://fishshell.com) user, copy and paste the code below to make your vengo installation works
+If you are a [fish](http://fishshell.com) user, you will probably copy and paste the code below to make your vengo
+installation work.
+
+**note**: copy one or another depending of which tool (curl or wget) do you want to use
+
+##### With curl
 
 ```
-echo 'function vengo --description "Generate and manage isolated virtual Go environments"
-  bash -c \'for inc in ~/.VenGO/bin/includes/*; do . $inc; done && . ~/.VenGO/bin/vengo; vengo "$@"\' vengo $argv
-end' > ~/.config/fish/function/vengo.fish
+mkdir -p ~/.config/fish/functions && curl https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo.fish > ~/.config/fish/functions/vengo.fish && curl https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo_activate.fish > ~/.config/fish/functions/vengo_activate.fish
+```
+
+##### With wget
+
+```
+mkdir -p ~/.config/fish/functions && wget https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo.fish -O ~/.config/fish/functions/vengo.fish && wget https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo_activate.fish -O ~/.config/fish/functions/vengo_activate.fish
 ```
 
 ## Usage
