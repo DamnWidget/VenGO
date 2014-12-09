@@ -77,13 +77,13 @@ installation work.
 ##### With curl
 
 ```
-mkdir -p ~/.config/fish/functions && curl https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo.fish > ~/.config/fish/functions/vengo.fish && curl https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo_activate.fish > ~/.config/fish/functions/vengo_activate.fish
+mkdir -p ~/.config/fish/functions; curl https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo.fish > ~/.config/fish/functions/vengo.fish; curl https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo_activate.fish > ~/.config/fish/functions/vengo_activate.fish
 ```
 
 ##### With wget
 
 ```
-mkdir -p ~/.config/fish/functions && wget https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo.fish -O ~/.config/fish/functions/vengo.fish && wget https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo_activate.fish -O ~/.config/fish/functions/vengo_activate.fish
+mkdir -p ~/.config/fish/functions; wget https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo.fish -O ~/.config/fish/functions/vengo.fish; wget https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo_activate.fish -O ~/.config/fish/functions/vengo_activate.fish
 ```
 
 Fish users should use the command `vengo_activate` instead of `vengo activate` to activate environments.
