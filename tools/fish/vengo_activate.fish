@@ -1,4 +1,8 @@
 function vengo_activate --description 'Activate a VenGO virtual environment'
+        if not set -q VENGO_HOME
+		set -g VENGO_HOME "$HOME/.VenGO"
+		set -x VENGO_HOME $VENGO_HOME
+	end
         if not set -q __OK
                 set -g __OK (set_color -o green)
         end
