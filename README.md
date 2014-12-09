@@ -86,6 +86,8 @@ mkdir -p ~/.config/fish/functions && curl https://raw.githubusercontent.com/Damn
 mkdir -p ~/.config/fish/functions && wget https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo.fish -O ~/.config/fish/functions/vengo.fish && wget https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo_activate.fish -O ~/.config/fish/functions/vengo_activate.fish
 ```
 
+Fish users should use the command `vengo_activate` instead of `vengo activate` to activate environments.
+
 ## Usage
 
 VenGO is quite similar to Python's virtualenvwrapper tool, if you execute just `vengo` with no arguments you will get
