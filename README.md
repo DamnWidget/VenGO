@@ -94,10 +94,9 @@ If you want to get the active environment prompt at the right of your fish promp
 into `~/.config/fish/functions/fish_right_prompt.fish`
 
 ```fish
-function fish_right_prompt -d "VenGO information"
+function fish_right_prompt --description 'VenGO information'
         if [ "$VENGO_ENV" != "" ]
-        set ENV  (basename "$VENGO_ENV")
-            echo "(VenGO: $ENV)"
+            echo "$VENGO_PROMPT"
         end
 end
 ```
