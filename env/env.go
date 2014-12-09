@@ -70,6 +70,13 @@ func (e *Environment) Exists() bool {
 
 // generate an environment file
 func (e *Environment) Generate() error {
+	if err := e.generateBash(); err != nil {
+		return err
+	}
+	return e.generateFish()
+}
+
+func (e *Environment) generateBash() error {
 	if os.Getenv("VENGO_HOME") != "" {
 		environTemplate = filepath.Join(
 			os.Getenv("VENGO_HOME"), "scripts", "tpl", "activate")
@@ -103,10 +110,48 @@ func (e *Environment) Generate() error {
 	return nil
 }
 
+func (e *Environment) generateFish() error {
+	if os.Getenv("VENGO_HOME") != "" {
+		environTemplate = filepath.Join(
+			os.Getenv("VENGO_HOME"), "scripts", "tpl", "activate.fish")
+	} else {
+		if environTemplate == "tpl/activate.fish" {
+			_, caller, _, ok := runtime.Caller(1)
+			if ok {
+				// we are running in a test environment
+				environTemplate = filepath.Join(
+					path.Dir(caller), "..", "env", environTemplate)
+			}
+		}
+	}
+	file, err := e.checkPath(struct{}{})
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	activateTpl, err := ioutil.ReadFile(environTemplate)
+	if err != nil {
+		fmt.Println("while reading activate script template file:", err)
+		return err
+	}
+	tpl := template.Must(template.New("environment").Parse(string(activateTpl)))
+	err = tpl.Execute(file, e)
+	if err != nil {
+		fmt.Println("while generating environment template:", err)
+		return err
+	}
+
+	return nil
+}
+
 // checks if the environment path exists, and create it if doesn't
 // returns a file value or error if fails
-func (e *Environment) checkPath() (*os.File, error) {
-	fileName := filepath.Join(e.VenGO_PATH, "bin", "activate")
+func (e *Environment) checkPath(fish ...struct{}) (*os.File, error) {
+	sh := "activate"
+	if len(fish) != 0 {
+		sh = "activate.fish"
+	}
+	fileName := filepath.Join(e.VenGO_PATH, "bin", sh)
 	return e.createFile(fileName)
 }
 
