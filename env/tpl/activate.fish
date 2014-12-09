@@ -33,6 +33,7 @@ end
 
 # set paths
 set -g VENGO_ENV "{{ .VenGO_PATH }}"
+set -x VENGO_ENV $VENGO_ENV
 # unset and backup old configuration
 set -g _VENGO_PREV_GOROOT (go env GOROOT)
 set -e GOROOT
@@ -47,6 +48,7 @@ set -e GOPATH
 set -g GOROOT "{{ .Goroot }}"
 set -g GOTOOLDIR "{{ .Gotooldir }}"
 set -g GOPATH "{{ .Gopath }}"
+set -x GOPATH $GOPATH
 
 # set the PATH
 set -g PATH "$GOROOT/bin" "$GOPATH/bin" $PATH
