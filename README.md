@@ -83,29 +83,10 @@ mkdir -p ~/.config/fish/functions; curl https://raw.githubusercontent.com/DamnWi
 ##### With wget
 
 ```
-mkdir -p ~/.config/fish/functions; wget https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo.fish -O ~/.config/fish/functions/vengo.fish; wget https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo_activate.fish -O ~/.config/fish/functions/vengo_activate.fish
+mkdir -p ~/.config/fish/functions; wget --no-check-certificate https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo.fish -O ~/.config/fish/functions/vengo.fish; wget --no-check-certificate https://raw.githubusercontent.com/DamnWidget/VenGO/master/tools/fish/vengo_activate.fish -O ~/.config/fish/functions/vengo_activate.fish
 ```
 
 Fish users should use the command `vengo_activate` instead of `vengo activate` to activate environments.
-
-##### VenGO fish prompt (optional)
-
-You can make the VenGO active environment appear in your fish prompt adding `"$VENGO_PROMPT"` to whatever place that you like it, so for example, adding it to the beginning of your prompt it can looks like 
-
-`(VenGO) damnwidget@iMacStation ~ $`
-
-##### VenGO fish right prompt (optional)
-
-If you want to get the active environment prompt at the right of your fish prompt just copy and paste the fish function below
-into `~/.config/fish/functions/fish_right_prompt.fish`
-
-```fish
-function fish_right_prompt --description 'VenGO information'
-        if [ "$VENGO_ENV" != "" ]
-            echo "$VENGO_PROMPT"
-        end
-end
-```
 
 ## Usage
 

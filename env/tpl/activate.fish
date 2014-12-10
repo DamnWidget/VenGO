@@ -27,10 +27,23 @@ function deactivate --description "Deactivate a VenGO active environment"
         set -e _VENGO_PREV_GOPATH
     end
 
+    # set an empty local fish_function_path, so fish_prompt doesn't automatically reload
+    set -l fish_function_path
+    functions -e fish_prompt
+    functions -c _vengo_fish_prompt fish_prompt
+    functions -e _vengo_fish_prompt
+
     set -e VENGO_ENV
     set -e VENGO_PROMPT
-    functions -e deactivate
+    if test "$argv[1]" != "just_reset"
+        functions -e deactivate
+    end
 end
+
+# reset environment
+# this is useful if someone activate an environment while other
+# environment is still active for
+deactivate just_reset
 
 # set paths
 set -g VENGO_ENV "{{ .VenGO_PATH }}"
@@ -54,3 +67,18 @@ set -g VENGO_PROMPT "{{ .PS1 }}"
 
 # set the PATH
 set -g PATH "$GOROOT/bin" "$GOPATH/bin" $PATH
+
+# copy fish_prompt and overwrite it with our own
+functions -c fish_prompt _vengo_fish_prompt
+function fish_prompt
+    # override prompt is prompt exists
+    if test -n "$VENGO_PROMPT"
+        printf "%s%s" "$VENGO_PROMPT" (set_color normal)
+        _vengo_fish_prompt
+        return
+    else
+        # prepend the VenGO environment name
+        printf "(%s) %s" (basename "$VENGO_ENV") (set_color normal)
+        _vengo_fish_prompt
+    end
+end
