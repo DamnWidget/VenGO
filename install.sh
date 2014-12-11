@@ -63,7 +63,9 @@ echo -e "${OK}✔${RESET}"
 
 echo -n "Installing binaries into $DESTDIR..."
 mkdir -p $DESTDIR/scripts
+[ -d  $DESTDIR/bin ] && rm -Rf $DESTDIR/bin
 mv $WORKDIR/bin $DESTDIR/
+[ -d  $DESTDIR/scripts/env/tpl ] && rm -Rf $DESTDIR/scripts/env/tpl
 mv $WORKDIR/env/tpl $DESTDIR/scripts/
 mv $WORKDIR/VERSION $DESTDIR/
 rm -Rf $WORKDIR
