@@ -23,6 +23,7 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,10 +32,87 @@ import (
 	"github.com/DamnWidget/VenGO/utils"
 )
 
+var cmdList = &Command{
+	Name:  "list",
+	Usage: "list list [-a, --all] [-n, --non-installed] [-j, --json]",
+	Short: "List installed and available Go versions",
+	Long: fmt.Sprintf(`
+Shows a list of installed Go versions, available non installed Go versions or
+both. If the list command detects that a installed Go version integrity is
+compromised, the legend is as shown below:
+
+  Mark  Description
+  ----  ------------------------------------
+   %s    if the integrity is not compromised
+   %s    if the integrity is compromised
+
+If the -n or --non-installed flag is passed to the list command, a complete
+list of available sources is shown to the user ordered by binary, mercurial
+and source.tar.gz packed versions.
+
+The flag -a or --all is used to show all the available to install and installed
+Go versions.
+
+JSON output:
+  One can pass the -j or --json option to display the output as a JSON
+  structure with the following format:
+    {
+        "installed": [
+             "1.3rc2",
+             "go1.2.2",
+             "go1.3.2","go1.3.3",
+             "go1.4",
+             "go1.4rc1",
+             "go1.4rc2"
+        ]
+    }
+`, utils.Ok("✔"), utils.Fail("✖")),
+	Execute: runList,
+}
+
+var (
+	all          bool
+	nonInstalled bool
+	asJson       bool
+)
+
+// initialize the command
+func init() {
+	cmdList.Flag.BoolVarP(&all, "all", "a", false, "")
+	cmdList.Flag.BoolVarP(&nonInstalled, "non-installed", "n", false, "")
+	cmdList.Flag.BoolVarP(&asJson, "json", "j", false, "")
+}
+
+// run the list command
+func runList(cmd *Command, args ...string) {
+	options := func(l *List) {
+		l.DisplayAs = Text
+		if asJson {
+			l.DisplayAs = Json
+		}
+		l.ShowBoth = all
+		l.ShowInstalled = true
+		if nonInstalled {
+			l.ShowNotInstalled = true
+			if !l.ShowBoth {
+				l.ShowInstalled = false
+			}
+		}
+	}
+	nl := NewList(options)
+	data, err := nl.Run()
+	if err == nil {
+		fmt.Println(data)
+		return
+	}
+	log.Println(err)
+	os.Exit(2)
+}
+
 // json brief output structure
 type BriefJSON struct {
-	Installed []string `json:"installed"`
-	Available []string `json:"available"`
+	Installed []string `json:"installed,omitempty"`
+	Available []string `json:"available,omitempty"`
 }
 
 // list command
