@@ -25,6 +25,8 @@ if [ "$VENGO_HOME" = "" ]; then
     . $VENGO_HOME/bin/includes/help
 fi
 
+alias vengo $VENGO_HOME/bin/vengo
+
 # VenGO activate script
 function vengo_activate {
     if [ -n "$1" ]; then
