@@ -54,24 +54,24 @@ echo -n "Getting sources... "
 $GIT clone https://$REPOSITORY $WORKDIR 2> /dev/null
 echo -e "${OK}✔${RESET}"
 
-echo -n "Installing tools..."
-$GO get $REPOSITORY/applications/...
-for tool in "install" "uninstall" "list" "lsenvs" "mkenv" "rmenv" "cleaner"; do
-    mv $GOPATH/bin/$tool $WORKDIR/bin/
-done
+echo -n "Getting VenGO binary... "
+$GO get $REPOSITORY
+mv $GOPATH/bin/VenGO $WORKDIR/bin/vengo
 echo -e "${OK}✔${RESET}"
 
-echo -n "Installing binaries into $DESTDIR..."
-mkdir -p $DESTDIR/scripts
-[ -d  $DESTDIR/bin ] && rm -Rf $DESTDIR/bin
+echo -n "Installing binaries and data into $DESTDIR..."
+if [ ! -d "$DESTDIR" ]; then
+    mkdir -p $DESTDIR/scripts
+    mkdir -p $DESTDIR/bin
+fi
+rm -Rf "${DESTDIR}/scripts/*"
+rm -f "${DESTDIR}/bin/*"
 mv $WORKDIR/bin $DESTDIR/
-[ -d  $DESTDIR/scripts/env/tpl ] && rm -Rf $DESTDIR/scripts/env/tpl
 mv $WORKDIR/env/tpl $DESTDIR/scripts/
 mv $WORKDIR/VERSION $DESTDIR/
-rm -Rf $WORKDIR
 echo -e "${OK}✔${RESET}"
 
 echo ""
 echo -e "${OK}VenGO is now installed in your system${RESET}"
-echo "add 'source ${HOME}/.VenGO/bin/vengo' to your .bashrc or .profile to activate it"
-echo "you can also do '. ${HOME}/.VenGO/bin/vengo' to start using it right now"
+echo "add 'source ${HOME}/.VenGO/bin/vengo.sh' to your .bashrc or .profile to activate it"
+echo "you can also do '. ${HOME}/.VenGO/bin/vengo.sh' to start using it right now"
