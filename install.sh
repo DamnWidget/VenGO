@@ -61,15 +61,16 @@ echo -e "${OK}✔${RESET}"
 
 echo -n "Installing binaries and data into $DESTDIR..."
 if [ ! -d "$DESTDIR" ]; then
-    mkdir -p $DESTDIR/scripts
-    mkdir -p $DESTDIR/bin
+    mkdir $DESTDIR
 fi
-rm -Rf "${DESTDIR}/scripts/*"
-rm -f "${DESTDIR}/bin/*"
+rm -Rf "${DESTDIR}/bin"
+rm -Rf "${DESTDIR}/scripts/env/tpl"
 mv $WORKDIR/bin $DESTDIR/
 mv $WORKDIR/env/tpl $DESTDIR/scripts/
 mv $WORKDIR/VERSION $DESTDIR/
+rm -Rf $WORKDIR
 echo -e "${OK}✔${RESET}"
+
 
 echo ""
 echo -e "${OK}VenGO is now installed in your system${RESET}"
