@@ -64,7 +64,7 @@ if [ ! -d "$DESTDIR" ]; then
     mkdir $DESTDIR
 fi
 rm -Rf "${DESTDIR}/bin"
-rm -Rf "${DESTDIR}/scripts/env/tpl"
+rm -Rf "${DESTDIR}/scripts/tpl"
 mv $WORKDIR/bin $DESTDIR/
 mv $WORKDIR/env/tpl $DESTDIR/scripts/
 mv $WORKDIR/VERSION $DESTDIR/

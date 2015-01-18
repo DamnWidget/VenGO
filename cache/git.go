@@ -22,7 +22,6 @@ package cache
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -208,12 +207,9 @@ func getVersionTagsFromGitRepo() ([]string, error) {
 
 func getVersionTags() (tags []string) {
 	tags = append(tags, "go")
-	realOut := Output
-	Output = ioutil.Discard
 	if err := cloneSource(); err != nil {
 		log.Fatal(err)
 	}
-	Output = realOut
 
 	newTags, err := getVersionTagsFromGitRepo()
 	if err != nil {
