@@ -39,7 +39,7 @@ func GetInstalled(tags, sources, binaries []string) ([]string, error) {
 	versions := []string{}
 	for _, file := range files {
 		filename := path.Base(file)
-		if filename != "mercurial" && filename != "logs" {
+		if filename != "mercurial" && filename != "logs" && filename != "git" {
 			stat, err := os.Stat(file)
 			if err != nil {
 				fmt.Println("while getting installed versions:", err)
@@ -58,10 +58,9 @@ func GetInstalled(tags, sources, binaries []string) ([]string, error) {
 
 // return a list of non installed go versions
 func GetNonInstalled(v, tags, sources, binaries []string) []string {
-	var versions = make([]string, len(tags)+len(sources)+len(binaries))
+	versions := []string{}
 	installed_versions := make([]string, len(v))
 	copy(installed_versions, v)
-	c := 0
 	for _, ver := range append(binaries, append(tags, sources...)...) {
 		found := false
 		for i, installed := range installed_versions {
@@ -76,8 +75,7 @@ func GetNonInstalled(v, tags, sources, binaries []string) []string {
 		if found {
 			continue
 		}
-		versions[c] = fmt.Sprintf("    %s", ver)
-		c++
+		versions = append(versions, fmt.Sprintf("    %s", ver))
 	}
 
 	return versions
@@ -86,7 +84,7 @@ func GetNonInstalled(v, tags, sources, binaries []string) []string {
 // check if a given version is valid in all the possible containers
 func isValidVersion(file string, tags, sources, binaries []string) bool {
 	// tip is always a valid version
-	if file == "tip" {
+	if file == "tip" || file == "go" {
 		return true
 	}
 	// look on the sources first that is the smaller collection
@@ -100,6 +98,7 @@ func isValidVersion(file string, tags, sources, binaries []string) bool {
 	if len(binaries) > index && binaries[index] == file {
 		return true
 	}
+	// now look in the git tags using binary search
 	// now look in the mercurial tags using binary search
 	index = sort.SearchStrings(tags, file)
 	if len(tags) > index && tags[index] == file {

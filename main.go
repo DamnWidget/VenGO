@@ -36,6 +36,11 @@ func main() {
 		commands.Usage()
 	}
 
+	if args[0] == "version" {
+		commands.Version(vengo_version)
+		return
+	}
+
 	if args[0] == "help" {
 		commands.Help(args[1:]...)
 		return

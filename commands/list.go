@@ -34,7 +34,7 @@ import (
 
 var cmdList = &Command{
 	Name:  "list",
-	Usage: "list list [-a, --all] [-n, --non-installed] [-j, --json]",
+	Usage: "list [-a, --all] [-n, --non-installed] [-j, --json]",
 	Short: "List installed and available Go versions",
 	Long: fmt.Sprintf(`
 Shows a list of installed Go versions, available non installed Go versions or
@@ -71,28 +71,29 @@ JSON output:
 }
 
 var (
-	all          bool
-	nonInstalled bool
-	asJson       bool
+	allList          bool
+	nonInstalledList bool
+	asJsonList       bool
 )
 
 // initialize the command
 func init() {
-	cmdList.Flag.BoolVarP(&all, "all", "a", false, "")
-	cmdList.Flag.BoolVarP(&nonInstalled, "non-installed", "n", false, "")
-	cmdList.Flag.BoolVarP(&asJson, "json", "j", false, "")
+	cmdList.Flag.BoolVarP(&allList, "all", "a", false, "")
+	cmdList.Flag.BoolVarP(&nonInstalledList, "non-installed", "n", false, "")
+	cmdList.Flag.BoolVarP(&asJsonList, "json", "j", false, "")
+	cmdList.register()
 }
 
 // run the list command
 func runList(cmd *Command, args ...string) {
 	options := func(l *List) {
 		l.DisplayAs = Text
-		if asJson {
+		if asJsonList {
 			l.DisplayAs = Json
 		}
-		l.ShowBoth = all
+		l.ShowBoth = allList
 		l.ShowInstalled = true
-		if nonInstalled {
+		if nonInstalledList {
 			l.ShowNotInstalled = true
 			if !l.ShowBoth {
 				l.ShowInstalled = false

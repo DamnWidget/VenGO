@@ -43,14 +43,11 @@ const (
 const (
 	// command template
 	commandTpl = `
-Create and manage Isolated Virtual Environments for Golang.
-
-Usage:
-   vengo command [arguments]
+Usage: vengo command [arguments]
 
 Where command can be one of the list below:
 {{ range . }}
-   {{ .Name | Ok | printf "%-8s" }} {{ .Short }}{{ end }}
+   {{ .Name | Ok | printf "%-26s" }} {{ .Short }}{{ end }}
 
 Use "vengo help command" for detailed information about any command
 `
@@ -85,14 +82,25 @@ func (cmd *Command) String() string {
 // display the usage and exit
 func (cmd *Command) DisplayUsageAndExit() {
 	fmt.Printf("Usage: vengo %s\n\n", cmd.Usage)
-	fmt.Printf("%s: execute 'vengo' with no arguments to get a list of valid commands\n")
+	fmt.Printf("%s: execute 'vengo' with no arguments to get a list of valid commands\n", suggest)
 	os.Exit(2)
+}
+
+// register the command in the commands list
+func (cmd *Command) register() {
+	Commands[cmd.Name] = cmd
 }
 
 // used when the commans is not found
 func NonCommand(cmd string) {
 	fmt.Printf("Command '%s' doesn't looks like a valid VenGO command...\n", cmd)
 	fmt.Printf("%s: execute 'vengo' with no arguments to get a list of valid commands\n", suggest)
+}
+
+// version function
+func Version(version string) {
+	version = utils.Ok(version)
+	fmt.Printf("VenGO, Virtual Golang Environment builder %s\n", version)
 }
 
 // help function
@@ -146,6 +154,4 @@ func IsNotInstalledError(err error) bool {
 }
 
 // commands map, useful for the help command
-var Commands map[string]*Command = map[string]*Command{
-	cmdList.Name: cmdList,
-}
+var Commands map[string]*Command = map[string]*Command{}

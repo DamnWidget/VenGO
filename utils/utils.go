@@ -54,6 +54,7 @@ func LogOperation(readers []*bufio.Reader) {
 // execute an external command and update the output as it's being written
 func Exec(verbose bool, args ...string) error {
 	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Env = nil
 	out, err := cmd.StdoutPipe()
 	if err != nil {
 		return err

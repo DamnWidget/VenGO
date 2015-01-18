@@ -18,7 +18,7 @@
    See LICENSE file for more details.
 */
 
-package main
+package commands
 
 import (
 	"fmt"
@@ -31,42 +31,53 @@ import (
 	"github.com/DamnWidget/VenGO/utils"
 )
 
-func main() {
-	if len(os.Args) < 2 {
-		displayHelp()
-		os.Exit(1)
+var cmdUninstall = &Command{
+	Name:  "uninstall",
+	Usage: "uninstall version",
+	Short: "Uninstall an installed Go version",
+	Long: `Uninstalls a Go installed version, it doesn't remove any virtual Go
+environment that has been created using the deleted version but it will be
+shown as compromised by the 'lsenvs' command. Remember that environments can
+be migrated to other Go versions using the 'vengo migrate' command.
+`,
+	Execute: runUninstall,
+}
+
+// initialize command
+func init() {
+	cmdUninstall.register()
+}
+
+// run the uninstall command
+func runUninstall(cmd *Command, args ...string) {
+	if len(args) == 0 {
+		cmd.DisplayUsageAndExit()
 	}
-	version := os.Args[1]
+	version := args[0]
 	activeEnv := os.Getenv("VENGO_ENV")
 	if activeEnv != "" {
 		if err := checkEnvironment(version, activeEnv); err != nil {
 			fmt.Println("error:", err)
-			fmt.Printf(
-				"  %s: execute 'deactivate' before call this command\n",
-				utils.Ok("suggestion"),
-			)
-			os.Exit(1)
+			fmt.Printf("%s: execute 'deactivate' before call this command\n", suggest)
+			os.Exit(2)
 		}
 	}
 
 	versionPath := filepath.Join(cache.CacheDirectory(), version)
 	if _, err := os.Stat(versionPath); err != nil {
+		log.Println(err)
 		if os.IsNotExist(err) {
 			fmt.Printf("%s is not a Go installed version...\n", version)
-			os.Exit(1)
+			fmt.Printf("%s: try with 'vengo list'\n", suggest)
+			os.Exit(2)
 		}
 		log.Fatal(err)
 	}
-	err := os.RemoveAll(filepath.Join(cache.CacheDirectory(), version))
-	if err != nil {
-		log.Fatal(err)
+	err := os.RemoveAll(versionPath)
+	if err == nil {
+		fmt.Printf("%s has been uninstalled\n", utils.Ok(version))
 	}
-	fmt.Printf("%s has been uninstalled\n", utils.Ok(version))
-}
-
-// display help message
-func displayHelp() {
-	fmt.Println(fmt.Sprintf("%s: vengo uninstall version", utils.Ok("Usage")))
+	log.Fatal(err)
 }
 
 // checks if the in use environment has relation with a specific Go version
@@ -77,9 +88,7 @@ func checkEnvironment(version, env string) error {
 	}
 	if path.Base(versionLink) == version {
 		return fmt.Errorf(
-			"%s is currently in use by active environment '%s'",
-			version, path.Base(env),
-		)
+			"%s is currently in use by the active environment", version, path.Base(env))
 	}
 	return nil
 }

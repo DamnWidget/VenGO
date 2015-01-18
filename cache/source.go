@@ -51,7 +51,7 @@ func AlreadyCompiled(ver string) bool {
 }
 
 // compile a given version of go in the cache
-func Compile(ver string, verbose bool) error {
+func Compile(ver string, verbose, nocgo bool) error {
 	fmt.Fprint(Output, "Compiling... ")
 	if verbose {
 		fmt.Fprint(Output, "\n")
@@ -77,6 +77,9 @@ func Compile(ver string, verbose bool) error {
 	cmd := "./make.bash"
 	if runtime.GOOS == "windows" {
 		cmd = "./make.bat"
+	}
+	if nocgo {
+		os.Setenv("CGO_ENABLED", "0")
 	}
 	if err := utils.Exec(verbose, cmd); err != nil {
 		return err

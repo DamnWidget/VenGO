@@ -28,7 +28,72 @@ import (
 
 	"github.com/DamnWidget/VenGO/cache"
 	"github.com/DamnWidget/VenGO/env"
+	"github.com/DamnWidget/VenGO/utils"
 )
+
+var cmdImport = &Command{
+	Name:  "import",
+	Usage: "import [-v] [-f] [-p] manifest_file",
+	Short: "Import a previously exported environment from a file",
+	Long: `Imports a manifest file recreating a virtual Go environment previously
+exported in this or another system. VenGO will clone the packages in the
+manifest to match the exact same version of the packages as they were installed
+in the system where the environment was exported.
+
+If the Go version used to export the environment is not installed, VenGO will
+install it automatically.
+
+If the an environment with the same name already exists in the VenGO path, the
+user can force it's importation using the -f or --force flag.
+
+A custom prompt for the imported environment can be specified passinfg a string
+value to the -p or --prompt flag.
+
+To get verbose ouput the -v or --verbose flag can be passed`,
+	Execute: runImport,
+}
+
+var (
+	promptImport  string
+	forceImport   bool
+	verboseImport bool
+)
+
+// initialize command
+func init() {
+	cmdImport.Flag.StringVarP(&promptImport, "prompt", "p", "", "prompt")
+	cmdImport.Flag.BoolVarP(&forceImport, "force", "f", false, "force")
+	cmdImport.Flag.BoolVarP(&verboseImport, "verbose", "v", false, "verbose")
+	cmdImport.register()
+}
+
+// run the import command
+func runImport(cmd *Command, args ...string) {
+	if len(args) == 0 {
+		cmd.DisplayUsageAndExit()
+	}
+	// make sure that the manifest file exists
+	if _, err := os.Stat(args[0]); err != nil {
+		fmt.Println(utils.Fail(
+			fmt.Sprintf("error: can't open %s manifest file", args[0])))
+		os.Exit(2)
+	}
+
+	options := func(i *Import) {
+		i.Force = forceImport
+		i.Verbose = verboseImport
+		i.Prompt = promptImport
+		i.Manifest = args[0]
+	}
+	i := NewImport(options)
+	out, err := i.Run()
+	if err != nil {
+		fmt.Println(utils.Fail(fmt.Sprintf("error: %v", err)))
+		os.Exit(2)
+	}
+	fmt.Printf("%s\n", utils.Ok(out))
+	os.Exit(0)
+}
 
 type Import struct {
 	Manifest string

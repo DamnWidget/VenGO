@@ -34,6 +34,15 @@ func MercurialExists() bool {
 	return true
 }
 
+func GitExists() bool {
+	_, err := os.Stat(filepath.Join(CacheDirectory(), "git"))
+	if err != nil {
+		return !os.IsNotExist(err)
+	}
+
+	return true
+}
+
 func SourceExists(ver string) (bool, error) {
 	_, err := os.Stat(filepath.Join(CacheDirectory(), ver))
 	if err != nil {

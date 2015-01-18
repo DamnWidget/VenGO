@@ -99,10 +99,10 @@ func LoadManifest(manifestFile string) (*envManifest, error) {
 func (em *envManifest) GenerateEnvironment(v bool, prompt string) error {
 	// install go version if it's not installed yet
 	if !LookupInstalledVersion(em.GoVersion) {
-		if err := cache.CacheDonwloadMercurial(em.GoVersion); err != nil {
+		if err := cache.CacheDownloadGit(em.GoVersion); err != nil {
 			return err
 		}
-		if err := cache.Compile(em.GoVersion, v); err != nil {
+		if err := cache.Compile(em.GoVersion, v, false); err != nil {
 			return err
 		}
 	}

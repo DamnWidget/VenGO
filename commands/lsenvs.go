@@ -32,9 +32,51 @@ import (
 	"github.com/DamnWidget/VenGO/utils"
 )
 
+var cmdLsenvs = &Command{
+	Name:  "lsenvs",
+	Usage: "lsenvs [-j]",
+	Short: "Lists available virtual Go environments",
+	Long: fmt.Sprintf(`Lists isolated virtual Go environments in your system. Integrity compromised
+environments are shown as the legend shown below:
+
+	Mark  Description
+  ----  ------------------------------------
+   %s    if the integrity is not compromised
+   %s    if the integrity is compromised
+
+If the -j or --json option is passed, the command resturn a JSON string instead.
+`, utils.Ok("✔"), utils.Fail("✖")),
+	Execute: runLsenvs,
+}
+
+// initialize the command
+func init() {
+	cmdLsenvs.Flag.BoolVarP(&asJsonList, "json", "j", false, "display JSON")
+	cmdLsenvs.register()
+}
+
+// run the lsenvs command
+func runLsenvs(cmd *Command, args ...string) {
+	options := []func(el *EnvironmentsList){}
+
+	if asJsonList {
+		options = append(options, func(el *EnvironmentsList) {
+			el.DisplayAs = Json
+		})
+	}
+	nel := NewEnvironmentsList(options...)
+	data, err := nel.Run()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(2)
+	}
+	fmt.Println(data)
+	os.Exit(0)
+}
+
 type EnvironmentsJSON struct {
 	Available []string `json:"available"`
-	Invalid   []string `json:"invalid"`
+	Invalid   []string `json:"invalid,omitempty"`
 }
 
 // EnvironmentsList command
@@ -101,6 +143,7 @@ func (e *EnvironmentsList) getEnvironments() ([]string, []string, error) {
 	}
 	available, invalid := []string{}, []string{}
 	for _, file := range files {
+		var vengoenv string
 		filename := path.Base(file)
 		stat, err := os.Stat(file)
 		if err != nil {
@@ -120,14 +163,21 @@ func (e *EnvironmentsList) getEnvironments() ([]string, []string, error) {
 					invalid = append(invalid, filename)
 				}
 				continue
-			} else if _, err := os.Stat(r); err != nil {
-				if os.IsNotExist(err) || os.IsPermission(err) {
-					invalid = append(invalid, filename)
+			} else {
+				if e.DisplayAs == Text {
+					vengoenv = fmt.Sprintf("%-22s%-8s", filename, path.Base(r))
+				} else {
+					vengoenv = filename
 				}
-				continue
+				if _, err := os.Stat(r); err != nil {
+					if os.IsNotExist(err) || os.IsPermission(err) {
+						invalid = append(invalid, vengoenv)
+					}
+					continue
+				}
 			}
 
-			available = append(available, filename)
+			available = append(available, vengoenv)
 		}
 	}
 

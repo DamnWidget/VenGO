@@ -18,7 +18,7 @@
    See LICENSE file for more details.
 */
 
-package main
+package commands
 
 import (
 	"fmt"
@@ -29,38 +29,42 @@ import (
 	"github.com/DamnWidget/VenGO/utils"
 )
 
-func main() {
-	if len(os.Args) < 2 {
-		displayHelp()
-		os.Exit(1)
-	}
-	env := os.Args[1]
-	if os.Getenv("VENGO_ENV") == env {
-		fmt.Println("error:", fmt.Sprintf(
-			"%s is currently in use as the active environment", env))
-		fmt.Printf(
-			"  %s: execute 'deactivate' before call this command\n",
-			utils.Ok("suggestion"),
-		)
-		os.Exit(1)
-	}
+var cmdRmenv = &Command{
+	Name:  "rmenv",
+	Usage: "rmenv env_name",
+	Short: "Remove a Virtual Go Environment",
+	Long: `Deletes a virtual Go environment, it's deletion doesn't affect the Go
+version used to install the environment or other environments using that Go version
+`,
+	Execute: runRmenv,
+}
 
+// initialize the command
+func init() {
+	cmdRmenv.register()
+}
+
+// run the rmenv command
+func runRmenv(cmd *Command, args ...string) {
+	if len(args) == 0 {
+		cmd.DisplayUsageAndExit()
+	}
+	env := args[0]
+	if os.Getenv("VENGO_ENV") == env {
+		fmt.Println(
+			"error:", fmt.Sprintf("%s is currently in use as the active environment"))
+		fmt.Printf("%s: execute 'deactivate' before call this command\n", suggest)
+		os.Exit(2)
+	}
 	envPath := filepath.Join(os.Getenv("VENGO_HOME"), env)
 	if _, err := os.Stat(envPath); err != nil {
-		if os.IsNotExist(err) {
-			fmt.Printf("%s is not a VenGO environment...\n", env)
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		fmt.Printf("%s is not a VenGO environment...\n", env)
+		fmt.Println(err)
+		os.Exit(2)
 	}
 	err := os.RemoveAll(envPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("%s has been removed\n", utils.Ok(env))
-}
-
-// display help message
-func displayHelp() {
-	fmt.Println(fmt.Sprintf("%s: vengo rmenv environment", utils.Ok("Usage")))
 }

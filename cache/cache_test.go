@@ -105,20 +105,20 @@ var _ = Describe("Cache", func() {
 	})
 
 	Describe("AvilableSources", func() {
-		It("Should return 13 sources", func() {
-			Expect(len(cache.AvailableSources())).To(Equal(13))
+		It("Should return 15 sources", func() {
+			Expect(len(cache.AvailableSources())).To(Equal(15))
 		})
 	})
 
 	Describe("AvilableBinaries", func() {
-		It("Should return 98 binaries", func() {
-			Expect(len(cache.AvailableBinaries())).To(Equal(98))
+		It("Should return 114 binaries", func() {
+			Expect(len(cache.AvailableBinaries())).To(Equal(114))
 		})
 	})
 
 	Describe("AvilableDonwloads", func() {
-		It("Should return 13 sources plus 98 binaries", func() {
-			Expect(len(cache.AvailableDownloads())).To(Equal(13 + 98))
+		It("Should return 15 sources plus 114 binaries", func() {
+			Expect(len(cache.AvailableDownloads())).To(Equal(15 + 114))
 		})
 	})
 
@@ -176,10 +176,10 @@ var _ = Describe("Cache", func() {
 			})
 		})
 
-		Describe("CacheDonwloadMercurial works as expected", func() {
+		Describe("CacheDonwloadGit works as expected", func() {
 			Context("Passing a non valid Go version", func() {
 				It("Should fail and give back a descriptive error", func() {
-					err := cache.CacheDonwloadMercurial("20.0")
+					err := cache.CacheDownloadGit("20.0")
 					Expect(err).To(HaveOccurred())
 					Expect(err).To(Equal(fmt.Errorf(
 						"20.0 doesn't seems to be a valid Go release\n"),
@@ -189,7 +189,7 @@ var _ = Describe("Cache", func() {
 
 			Context("Passing a valid Go version", func() {
 				It("Should clone it into the cache directory", func() {
-					err := cache.CacheDonwloadMercurial("go1.1")
+					err := cache.CacheDownloadGit("go1.1")
 					Expect(err).ToNot(HaveOccurred())
 					_, err = os.Stat(filepath.Join(cache.CacheDirectory(), "go1.1"))
 					Expect(err).NotTo(HaveOccurred())
@@ -200,7 +200,7 @@ var _ = Describe("Cache", func() {
 
 			Context("Passing a valid Go version with no go prefix", func() {
 				It("Should clone it into the cache directory", func() {
-					err := cache.CacheDonwloadMercurial("1")
+					err := cache.CacheDownloadGit("1")
 					Expect(err).ToNot(HaveOccurred())
 					_, err = os.Stat(filepath.Join(cache.CacheDirectory(), "go1"))
 					Expect(err).NotTo(HaveOccurred())
@@ -295,7 +295,7 @@ var _ = Describe("Cache", func() {
 			Describe("Compile works as expected", func() {
 				Context("Giving a non existent version", func() {
 					It("Shuld return an error", func() {
-						err := cache.Compile("1.0", false)
+						err := cache.Compile("1.0", false, false)
 						Expect(err).To(HaveOccurred())
 						Expect(os.IsNotExist(err)).To(BeTrue())
 					})
@@ -303,10 +303,10 @@ var _ = Describe("Cache", func() {
 
 				Context("Giving an existent version", func() {
 					It("Shoudl recompile it", func() {
-						err := cache.CacheDonwloadMercurial("1.3.3")
+						err := cache.CacheDownloadGit("1.3.3")
 
 						Expect(err).ToNot(HaveOccurred())
-						Expect(cache.Compile("1.3.3", false)).To(Succeed())
+						Expect(cache.Compile("1.3.3", false, false)).To(Succeed())
 					})
 				})
 			})

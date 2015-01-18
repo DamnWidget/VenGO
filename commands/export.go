@@ -26,6 +26,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -36,6 +37,79 @@ import (
 	"github.com/DamnWidget/VenGO/env"
 	"github.com/DamnWidget/VenGO/utils"
 )
+
+var cmdExport = &Command{
+	Name:  "export",
+	Usage: "export [-n] [-f] [-p] environment",
+	Short: "Export an environment into a manifest file",
+	Long: `Exports a VenGO environment into vengo manifest files using JSON format.
+Those manifest files can be used later by the 'vengo import' command to
+recreate the exported environment. It generates a JSON file that contains all
+the packages that have been installed into the exported VenGO environment
+GOPATH using the 'go get' tool (that means that only packages installed using
+git, mercurial, bzr or subversion can be exported) capturing the specific
+versions used when the package was installed in the exported environment.
+
+If the environment manifest has been already exported, we can force the export
+using the -f or --force flags to overwrite it.
+
+A different name can be done to the manifest file passing a parameter to the
+-n or --name flag`,
+	Execute: runExport,
+}
+
+var (
+	nameExport     string
+	forceExport    bool
+	prettifyExport bool
+)
+
+// initialize command
+func init() {
+	cmdExport.Flag.BoolVarP(&forceExport, "force", "f", false, "force export")
+	cmdExport.Flag.BoolVarP(&prettifyExport, "prettify", "p", false, "prettify")
+	cmdExport.Flag.StringVarP(&nameExport, "name", "n", "", "manifest name")
+	cmdExport.register()
+}
+
+// run the export command
+func runExport(cmd *Command, args ...string) {
+	env := func(e *Export) {}
+	if len(args) == 0 {
+		activeEnv := os.Getenv("VENGO_ENV")
+		if activeEnv == "" {
+			cmd.DisplayUsageAndExit()
+		}
+	} else {
+		env = func(e *Export) {
+			e.Environment = filepath.Join(cache.VenGO_PATH, args[0])
+		}
+	}
+	options := func(e *Export) {
+		e.Force = forceExport
+		e.Prettify = prettifyExport
+		e.Name = nameExport
+	}
+	e := NewExport(options, env)
+	if e.Err() != nil {
+		fmt.Println(utils.Fail(fmt.Sprint(e.Err())))
+		os.Exit(2)
+	}
+	if e.Exists() {
+		if !e.Force {
+			p := filepath.Join(e.Environment, e.Name)
+			fmt.Println(utils.Fail(fmt.Sprintf("%s already exists", p)))
+			fmt.Printf("%s: use the -f option to overwrite it\n", suggest)
+			os.Exit(2)
+		}
+	}
+	_, err := e.Run()
+	if err != nil {
+		fmt.Println(utils.Fail(fmt.Sprintf("error: %v", err)))
+		os.Exit(2)
+	}
+	os.Exit(0)
+}
 
 // export command
 type Export struct {
@@ -152,6 +226,7 @@ func (e *Export) LoadEnvironment() (*env.Environment, error) {
 
 // check if a manifest already exists for the given environment
 func (e *Export) Exists() bool {
+	log.Println(filepath.Join(e.Environment, e.Name))
 	_, err := os.Stat(filepath.Join(e.Environment, e.Name))
 	return err == nil
 }

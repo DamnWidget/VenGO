@@ -38,6 +38,8 @@ var checksums map[string]string = map[string]string{
 	"1.3.1": "bc296c9c305bacfbd7bff9e1b54f6f66ae421e6e",
 	"1.3.2": "67d3a692588c259f9fe9dca5b80109e5b99271df",
 	"1.3.3": "b54b7deb7b7afe9f5d9a3f5dd830c7dede35393a",
+	"1.4":   "6a7d9bd90550ae1e164d7803b3e945dc8309252b",
+	"1.4.1": "d77dbbb06d7a005966ced0b837bc6c97d541210f",
 
 	// unstable
 	"1.4beta1": "f2fece0c9f9cdc6e8a85ab56b7f1ffcb57c3e7cd",
@@ -145,6 +147,24 @@ var checksums map[string]string = map[string]string{
 	"1.3.3.darwin-386-osx10.8":   "88f35d3327a84107aac4f2f24cb0883e5fdbe0e5",
 	"1.3.3.windows-amd64":        "5f0b3b104d3db09edd32ef1d086ba20bafe01ada",
 	"1.3.3.windows-386":          "ba99083b22e0b22b560bb2d28b9b99b405d01b6b",
+
+	"1.4.linux-amd64":          "cd82abcb0734f82f7cf2d576c9528cebdafac4c6",
+	"1.4.linux-386":            "cb18d8122bfd3bbba20fa1a19b8f7566dcff795d",
+	"1.4.freebsd-amd64":        "9441745b9c61002feedee8f0016c082b56319e44",
+	"1.4.freebsd-386":          "36c5cc2ebef4b4404b12f2b5f2dfd23d73ecdbcc",
+	"1.4.darwin-amd64-osx10.6": "09621b9226abe12c2179778b015a33c1787b29d6",
+	"1.4.darwin-amd64-osx10.8": "28b2b731f86ada85246969e8ffc77d50542cdcb5",
+	"1.4.darwin-386-osx10.6":   "ee31cd0e26245d0e48f11667e4298e2e7f54f9b6",
+	"1.4.darwin-386-osx10.8":   "4d2ae2f5c0216c44e432c6044b1e1f0aea99f712",
+
+	"1.4.1.linux-amd64":          "beafc619c858c234008aaf135f28860b25e3dd2e",
+	"1.4.1.linux-386":            "e9410053c53919d01298364e690c850d58df7700",
+	"1.4.1.freebsd-amd64":        "47a93f859116a7d8f03453393ebcca328b652e77",
+	"1.4.1.freebsd-386":          "64e701f0c1f3919b2d29de03fd8b95690a50057c",
+	"1.4.1.darwin-amd64-osx10.6": "cdd53e5d1ad0d6f00ddf4643998227355b070370",
+	"1.4.1.darwin-amd64-osx10.8": "0ac1bd474ea9eb20fa1e66278be38d6e7d963902",
+	"1.4.1.darwin-386-osx10.6":   "1d39d0f200fb169ac8500e18d91716c975d6b978",
+	"1.4.1.darwin-386-osx10.8":   "bfccafb8f6b6b0b4293a3469158dcd81c45ae51e",
 
 	// unstable
 	"1.4beta1.linux-amd64":          "d2712acdaa4469ce2dc57c112a70900667269ca0",

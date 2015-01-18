@@ -77,7 +77,7 @@ var _ = Describe("Env", func() {
 
 		Describe("Install", func() {
 			It("Will create a symboolic link into VenGO_PATH", func() {
-				Expect(cache.CacheDonwloadMercurial("1.3.2")).To(Succeed())
+				Expect(cache.CacheDownloadGit("1.3.2")).To(Succeed())
 
 				name := "goTest"
 				prompt := "(gotest)"
@@ -112,6 +112,7 @@ var _ = Describe("Env", func() {
 	Describe("Packages", func() {
 		Context("When VENGO_ENV is not set", func() {
 			It("Should fail", func() {
+				os.Setenv("VENGO_ENV", "")
 				e := env.NewEnvironment("goTest", "(goTest)")
 				p, err := e.Packages()
 				Expect(p).To(BeNil())

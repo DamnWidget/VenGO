@@ -20,12 +20,4 @@
 
 package main
 
-import (
-	"os"
-
-	"github.com/DamnWidget/VenGO/cache"
-)
-
-func main() {
-	os.RemoveAll(cache.CacheDirectory())
-}
+var vengo_version = "v0.2.0"

@@ -174,7 +174,7 @@ func (e *Environment) createFile(filename string) (*os.File, error) {
 // install the given version into the environment creating a Symlink to it
 func (e *Environment) Install(ver string) error {
 	if !cache.AlreadyCompiled(ver) {
-		if err := cache.Compile(ver, false); err != nil {
+		if err := cache.Compile(ver, false, false); err != nil {
 			fmt.Println("while installing:", err)
 			return err
 		}
