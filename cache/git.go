@@ -122,6 +122,7 @@ func cloneSource() error {
 }
 
 func copySource(ver string) error {
+	var out []byte
 	fmt.Fprint(Output, "Copying source... ")
 	destination := filepath.Join(CacheDirectory(), ver)
 	os.RemoveAll(destination)
@@ -134,10 +135,13 @@ func copySource(ver string) error {
 		os.Chdir(curr)
 	}()
 	os.Chdir(TARGET)
-	out, err := exec.Command("git", "checkout", ver).CombinedOutput()
-	if err != nil {
-		fmt.Fprintln(Output, utils.Fail("✖"))
-		return err
+	if ver != "go" && ver != "tip" {
+		out, err := exec.Command("git", "checkout", ver).CombinedOutput()
+		log.Println(string(out), err)
+		if err != nil {
+			fmt.Fprintln(Output, utils.Fail("✖"))
+			return fmt.Errorf("%s", out)
+		}
 	}
 	out, err = exec.Command("cp", "-R", "../git", destination).CombinedOutput()
 	if err != nil {
@@ -168,7 +172,7 @@ func pull() error {
 }
 
 func lookupVersion(ver string, availableVersions []string) (index int) {
-	if ver == "go" {
+	if ver == "go" || ver == "tip" {
 		return 0xBEDEAD
 	}
 

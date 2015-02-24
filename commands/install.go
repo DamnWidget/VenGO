@@ -31,7 +31,7 @@ import (
 
 var cmdInstall = &Command{
 	Name:  "install",
-	Usage: "install [-s] [-b] [-v] [-f] [-n] version",
+	Usage: "install [-s] [-b] [-v] [-f] [-n] [-x] version",
 	Short: "Installs a new Go version",
 	Long: `Install a new version of Go, it can be installed directly from the official
 mercurial or git repositories, from a tarball packaed source or directly in
@@ -45,6 +45,9 @@ If the given version is already installed, we can force it's reinstallation
 using the -f or --force flags, to compile the newly downloaded Go version
 with CGO_ENABLED=0 the -n or --ncgo flag should be passed.
 
+The -x or -bootstrap flag is used to compile go 1.5 and superior, you should
+pass the path of a valid go 1.4 instalation as value for this parameter.
+
 Use the -v or --verbose flags to run the command with verbose output, this
 is useful to debug in case of errors during the compilation phase.
 `,
@@ -57,6 +60,7 @@ var (
 	sourceInstall  bool
 	verboseInstall bool
 	nocgoInstall   bool
+	bootStrap      string
 )
 
 // possible installation sources
@@ -74,6 +78,7 @@ type Install struct {
 	DisplayAs int
 	Verbose   bool
 	NoCGO     bool
+	BootStrap string
 }
 
 // initialize the command
@@ -83,6 +88,7 @@ func init() {
 	cmdInstall.Flag.BoolVarP(&sourceInstall, "source", "s", false, "Download tarball")
 	cmdInstall.Flag.BoolVarP(&verboseInstall, "verbose", "v", false, "verbose output")
 	cmdInstall.Flag.BoolVarP(&nocgoInstall, "ncgo", "n", false, "CGO_ENABLE=0")
+	cmdInstall.Flag.StringVarP(&bootStrap, "bootstrap", "x", "", "booostrap cmd ")
 	cmdInstall.register()
 }
 
@@ -95,6 +101,7 @@ func runInstall(cmd *Command, args ...string) {
 		i.Verbose = verboseInstall
 		i.Force = forceInstall
 		i.NoCGO = nocgoInstall
+		i.BootStrap = bootStrap
 		if binaryInstall {
 			i.Source = Binary
 		} else {
@@ -142,13 +149,13 @@ func (i *Install) Run() (string, error) {
 	}
 }
 
-// install from mercurial source
+// install from github source
 func (i *Install) fromGit() (string, error) {
 	if err := cache.CacheDownloadGit(i.Version, i.Force); err != nil {
-		return "error while installing from mercurial", err
+		return "error while installing from github", err
 	}
-	if err := cache.Compile(i.Version, i.Verbose, i.NoCGO); err != nil {
-		return "error while compiling from mercurial", err
+	if err := cache.Compile(i.Version, i.Verbose, i.NoCGO, i.BootStrap); err != nil {
+		return "error while compiling from github", err
 	}
 
 	result := fmt.Sprintf(
@@ -161,7 +168,7 @@ func (i *Install) fromSource() (string, error) {
 	if err := cache.CacheDownload(i.Version, i.Force); err != nil {
 		return "error while installing from tar.gz source", err
 	}
-	if err := cache.Compile(i.Version, i.Verbose, i.NoCGO); err != nil {
+	if err := cache.Compile(i.Version, i.Verbose, i.NoCGO, i.BootStrap); err != nil {
 		return "error while installing from tar.gz source", err
 	}
 

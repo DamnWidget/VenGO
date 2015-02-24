@@ -51,11 +51,17 @@ func AlreadyCompiled(ver string) bool {
 }
 
 // compile a given version of go in the cache
-func Compile(ver string, verbose, nocgo bool) error {
+func Compile(ver string, verbose, nocgo bool, boostrap ...string) error {
 	fmt.Fprint(Output, "Compiling... ")
 	if verbose {
 		fmt.Fprint(Output, "\n")
 	}
+
+	bs := ""
+	if len(boostrap) > 0 {
+		bs = boostrap[0]
+	}
+
 	currdir, _ := os.Getwd()
 	prefixed := false
 	err := os.Chdir(filepath.Join(CacheDirectory(), ver, "go", "src"))
@@ -80,6 +86,9 @@ func Compile(ver string, verbose, nocgo bool) error {
 	}
 	if nocgo {
 		os.Setenv("CGO_ENABLED", "0")
+	}
+	if bs != "" {
+		os.Setenv("GOROOT_BOOTSTRAP", bs)
 	}
 	if err := utils.Exec(verbose, cmd); err != nil {
 		return err
