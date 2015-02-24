@@ -475,7 +475,7 @@ var _ = Describe("Commands", func() {
 				Expect(i).ToNot(BeNil())
 				out, err := i.Run()
 				Expect(err).To(HaveOccurred())
-				Expect(out).To(Equal("error while installing from mercurial"))
+				Expect(out).To(Equal("error while installing from github"))
 				Expect(err).To(Equal(fmt.Errorf("go20.1 doesn't seems to be a valid Go release\n")))
 			})
 		})
