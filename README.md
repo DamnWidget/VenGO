@@ -30,7 +30,7 @@ FreeBSD | Stable |
 OS X | Stable | [@damnwidget](http://github.com/DamnWidget)
 Windows | Garbage |
 
-**note**: Support for Windows is planned
+> note: Support for Windows is planned
 
 ## Installation
 
@@ -72,7 +72,7 @@ echo "source $HOME/.VenGO/bin/vengo" >> $HOME/.bashrc
 If you are a [fish](http://fishshell.com) user, you will probably copy and paste the code below to make your vengo
 installation work.
 
-**note**: copy one or another depending of which tool (curl or wget) do you want to use
+> note: copy one or another depending of which tool (curl or wget) do you want to use
 
 ##### With curl
 
@@ -93,7 +93,7 @@ Fish users should use the command `vengo_activate` instead of `vengo activate` t
 VenGO is quite similar to Python's virtualenvwrapper tool, if you execute just `vengo` with no arguments you will get
 a list of available commands. The most basic usage is install a Go version
 
-**note**: VenGO is not able to use Go installations that has not been made with VenGO itself
+> note: VenGO is not able to use Go installations that has not been made with VenGO itself
 
 The following command will install Go 1.2.2 from the mercurial repository:
 
@@ -103,6 +103,8 @@ $ vengo install go1.2.2
 
 This install the go1.2.2 version into the VenGO's cache and generates a manifest that guarantee the installation
 integrity, now the programmer can create a new environment using the just installed Go version
+
+> note: VenGO supports installation of go1.5 and superior using the -bootstrap (or -x) flag and a valid go1.4 vengo root)
 
 ```
 $ vengo mkenv -g go1.2.2 MyEnv
@@ -161,7 +163,7 @@ $ vengo install --binary 1.3.3
 ```
 The install command is smart enough to know that we are using a 64bits OS X and it's version, it will work in the exact same way on GNU/Linux and Windows
 
-**note**: Windows support is not complete yet
+> note: Windows support is not complete yet
 
 Versions **prefixed** with `go` or `release` like `go1.1` or `release.r56` come from the official mercurial repository, the install command doesn't need any special flag to use it as it's the default download option, note that is not needed to add the `go` prefix neither but is a good practice to use it just to avoid confusion.
 
@@ -204,9 +206,9 @@ capturing the specific revisions used when the package was installed.
 This manifest can be then used by anyone that has access to it with the command `vengo import` to generate the exact same environment in their own. VenGO will clone the packages in the manifest in the exact specific
 version in the newly import VenGO environment `GOPATH`. This is similar to what `godep` does but for the whole `GOPATH` and without packing the code in a sub-directory or rewritting import paths.
 
-**note**: probably `godep` is still a more secure option as VenGO import still depends on network access and remote VCS systems.
+> note: probably `godep` is still a more secure option as VenGO import still depends on network access and remote VCS systems.
 
-**note**: VenGO also works with [gopkg.in](http://labix.org/gopkg.in) and [semver.v1](https://godoc.org/azul3d.org/semver.v1)
+> note: VenGO also works with [gopkg.in](http://labix.org/gopkg.in) and [semver.v1](https://godoc.org/azul3d.org/semver.v1)
 
 ### VenGO import
 
