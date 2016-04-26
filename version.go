@@ -20,4 +20,4 @@
 
 package main
 
-var vengo_version = "v1.1.1"
+var vengo_version = "v1.1.2"

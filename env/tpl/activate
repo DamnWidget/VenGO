@@ -66,9 +66,11 @@ _VENGO_PREV_GOPATH="$(go env GOPATH)"
 export _VENGO_PREV_GOPATH
 unset GOPATH
 
-_VENGO_PREV_PS1="$PS1"
-export _VENGO_PREV_PS1
-unset PS1
+if [ -z ${VENGO_ENV_DISABLE_PROMPT+x} ]; then
+	_VENGO_PREV_PS1="$PS1"
+	export _VENGO_PREV_PS1
+	unset PS1
+fi
 
 # set new environment variables
 GOROOT="{{ .Goroot }}"
@@ -84,8 +86,10 @@ _VENGO_PREV_PATH="$PATH"
 PATH="$GOROOT/bin:$GOPATH/bin:$PATH"
 export PATH
 
-PS1="{{ .PS1 }} ${_VENGO_PREV_PS1}"
-export PS1
+if [ -z ${VENGO_ENV_DISABLE_PROMPT+x} ]; then
+	PS1="{{ .PS1 }} ${_VENGO_PREV_PS1}"
+	export PS1
+fi
 
 # execute hash -r in bash and zsh
 if [ -n "$BASH" -o -n "$ZSH_VERSION" ]; then
