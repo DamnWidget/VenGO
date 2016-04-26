@@ -9,7 +9,7 @@ os:
 
 install:
     - go get -v -t ./...
-    - go get code.google.com/p/go.tools/cmd/cover
+    - go get github.com/golang/tools/cmd/cover
     - go get github.com/onsi/gomega
     - go install github.com/onsi/ginkgo/ginkgo
     - export PATH=$PATH:$HOME/gopath/bin
