@@ -55,7 +55,8 @@ curl -L https://raw.github.com/DamnWidget/VenGO/master/install.sh | bash
 Finally the command below will enable the `vengo` command in your system
 
 ```
-$ source $HOME/.VenGO/bin/vengo
+$ source $HOME/.VenGO/bin/vengo.sh
+$ source $HOME/.VenGO/bin/includes/*
 ```
 
 #### 3 Optional
@@ -64,7 +65,8 @@ If you want to enable `vengo` in permanent basis in your system, you can add it 
 files like
 
 ```
-echo "source $HOME/.VenGO/bin/vengo" >> $HOME/.bashrc
+$ echo "source $HOME/.VenGO/bin/vengo" >> $HOME/.bashrc
+$ echo "source $HOME/.VenGO/bin/includes/*" >> $HOME/.bashrc
 ```
 
 #### Fish users
@@ -112,11 +114,11 @@ $ vengo mkenv -g go1.2.2 MyEnv
 
 This will create a new isolated environment that uses go1.2.2 and uses `$VENGO_HOME/MyEnv` as `GOPATH`
 
-To activate this new environment thw programmer just have to use `vengo activate` with the name of the recently created
+To activate this new environment thw programmer just have to use `vengo_activate` with the name of the recently created
 environment
 
 ```
-$ vengo activate MyEnv
+$ vengo_activate MyEnv
 ```
 
 Now, whatever is installed using `go get` will be installed in the new isolated virtual go environment. It's `GOPATH` bin
